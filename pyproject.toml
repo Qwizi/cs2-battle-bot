@@ -1,0 +1,16 @@
+[tool.poetry]
+name = "discord-bot"
+version = "0.1.0"
+description = ""
+authors = ["Adrian Ciolek <ciolek.adrian@protonmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+py-cord = {extras = ["all"], version = "^2.4.1"}
+python-dotenv = "^1.0.1"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
