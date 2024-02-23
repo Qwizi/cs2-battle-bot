@@ -49,7 +49,7 @@ async def connect(ctx):
 @bot.slash_command(guild_ids=[guild_id])
 async def create(ctx, team1_name: discord.Option(str, default="Team1"), team2_name: discord.Option(str, default="Team2"), maplist: discord.Option(str, default="de_mirage,de_nuke")):
     await ctx.defer()
-    map_list = maplist.split(",")
+    maplist = maplist.split(",")
     if ctx.author.voice is None:
         await ctx.send("You're not in a voice channel.")
         return
@@ -57,38 +57,46 @@ async def create(ctx, team1_name: discord.Option(str, default="Team1"), team2_na
     voice_channel = ctx.author.voice.channel
     members = voice_channel.members
     async with httpx.AsyncClient(base_url=os.environ.get("API_URL")) as client:
-        # if len(members) <= 1:
-        #     await ctx.send("You need at least 2 players to create a match.")
-        #     return
-        discord_users_ids = [member.id for member in members]
-        discord_users_ids.append(ctx.author.id)
+        if len(members) <= 1:
+            await ctx.followup.send("Potrzebujesz przynajmniej 2 graczy do utworzenia meczu.")
+            return
+        players_response = await client.get("/players/")
+        players_steamids = []
+        if players_response.status_code == 200:
+            
+            players = players_response.json()
+            players_ids = [player["discord_user"]["user_id"] for player in players]
+            players_steamids = [{str(player["steam_user"]["steamid64"]): player["discord_user"]["user_id"]} for player in players]
+            print(players_steamids)
+            for member in members:
+                if str(member.id) not in players_ids:
+                    await ctx.followup.send(f"Użytkownik <@{member.id}> nie jest zarejestrowany w bazie danych. Połącz konto na [stronie](https://cs2.sharkservers.pl/accounts/discord/)")
+                    # remove member from list
+                    members.remove(member)
         response = await client.post("/matches/", json={"discord_users_ids": [member.id for member in members], "team1_name": team1_name, "team2_name": team2_name, "maplist": maplist})
         data = response.json()
-        print(response)
         if response.status_code == 201:
             team1 = data.get("team1")
             team2 = data.get("team2")
 
             if not team1 or not team2:
-                await ctx.send("Brakuje graczy do utworzenia meczu.")
+                await ctx.followup.send("Brakuje graczy do utworzenia meczu.")
                 return
-            print(team1)
-            print(team2)
             team1_names = []
 
-            for player in team1["players"]:
-                player_name = None
-                for key, value in player.items():
-                    player_name = value
-
-                team1_names.append(player_name)
-
+            for key, value in team1["players"].items():
+                for steamid in players_steamids:
+                    for k, v in steamid.items():
+                        if k == key:
+                            team1_names.append(f"<@{v}>")
+                            break
             team2_names = []
-            for player in team2["players"]:
-                player_name = None
-                for key, value in player.items():
-                    player_name = value
-                team2_names.append(player_name)
+            for key, value in team2["players"].items():
+                for steamid in players_steamids:
+                    for k, v in steamid.items():
+                        if k == key:
+                            team2_names.append(f"<@{v}>")
+                            break
             
             embed = discord.Embed(
                 title="Mecz utworzony!",
@@ -97,7 +105,7 @@ async def create(ctx, team1_name: discord.Option(str, default="Team1"), team2_na
             )
             embed.add_field(name=team1.get("name", "Team 1"), value=f"{', '.join(team1_names)}", inline=False)
             embed.add_field(name=team2.get("name", "Team 2"), value=f"{', '.join(team2_names)}", inline=False)
-            embed.add_field(name="Mapy", value=f"{', '.join(map_list)}", inline=False)
+            embed.add_field(name="Mapy", value=f"{', '.join(maplist)}", inline=False)
             await ctx.followup.send("Match created", embed=embed)
         else:
             await ctx.followup.send("Error creating match")
