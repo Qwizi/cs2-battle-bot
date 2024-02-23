@@ -1,7 +1,8 @@
+from email.policy import default
 import json
+from multiprocessing import Value
 import os
 import random
-from urllib import response
 import discord
 import httpx
 from dotenv import load_dotenv
@@ -46,7 +47,9 @@ async def connect(ctx):
 
 
 @bot.slash_command(guild_ids=[guild_id])
-async def create(ctx):
+async def create(ctx, team1_name: discord.Option(str, default="Team1"), team2_name: discord.Option(str, default="Team2"), maplist: discord.Option(str, default="de_mirage,de_nuke")):
+    await ctx.defer()
+    map_list = map_list.split(",")
     if ctx.author.voice is None:
         await ctx.send("You're not in a voice channel.")
         return
@@ -54,44 +57,49 @@ async def create(ctx):
     voice_channel = ctx.author.voice.channel
     members = voice_channel.members
     async with httpx.AsyncClient(base_url=os.environ.get("API_URL")) as client:
-        response = await client.post("/matches/", json={"discord_users_ids": [member.id for member in members]})
+        # if len(members) <= 1:
+        #     await ctx.send("You need at least 2 players to create a match.")
+        #     return
+        discord_users_ids = [member.id for member in members]
+        discord_users_ids.append(ctx.author.id)
+        response = await client.post("/matches/", json={"discord_users_ids": [member.id for member in members], "team1_name": team1_name, "team2_name": team2_name, "maplist": maplist})
         data = response.json()
-        if response.status_code == 200:
-            data = json.loads(data)
+        print(response)
+        if response.status_code == 201:
             team1 = data.get("team1")
             team2 = data.get("team2")
 
             if not team1 or not team2:
-                await ctx.send("Error creating match")
+                await ctx.send("Brakuje graczy do utworzenia meczu.")
                 return
-            
+            print(team1)
+            print(team2)
             team1_names = []
 
-            for player in team1:
-                player  = json.loads(player)
-                discord_user = player.get("discord_user")
-                mentioned_username = f"<@{discord_user.get('user_id')}>"
+            for player in team1["players"]:
+                player_name = None
+                for key, value in player.items():
+                    player_name = value
 
-                team1_names.append(mentioned_username)
+                team1_names.append(player_name)
 
             team2_names = []
-            for player in team2:
-                player  = json.loads(player)
-                discord_user = player.get("discord_user")
-                mentioned_username = f"<@{discord_user.get('user_id')}>"
-                team2_names.append(mentioned_username)
+            for player in team2["players"]:
+                player_name = None
+                for key, value in player.items():
+                    player_name = value
+                team2_names.append(player_name)
             
             embed = discord.Embed(
                 title="Mecz utworzony!",
                 description="Mecz został utworzony.",
                 color=discord.Colour.blurple(), # Pycord provides a class with default colors you can choose from
             )
-            embed.add_field(name="Drużyny", value="Zostały rozlosowane drużyny")
-            embed.add_field(name="Team 1", value=f"{', '.join(team1_names)}", inline=True)
-            embed.add_field(name="Team 2", value=f"{', '.join(team2_names)}", inline=True)
-            await ctx.send("Match created", embed=embed)
-            await ctx.send("Match created")
+            embed.add_field(name=team1.get("name", "Team 1"), value=f"{', '.join(team1_names)}", inline=False)
+            embed.add_field(name=team2.get("name", "Team 2"), value=f"{', '.join(team2_names)}", inline=False)
+            embed.add_field(name="Mapy", value=f"{', '.join(map_list)}", inline=False)
+            await ctx.followup.send("Match created", embed=embed)
         else:
-            await ctx.send("Error creating match")
+            await ctx.followup.send("Error creating match")
 
 bot.run(os.environ.get('TOKEN'))
