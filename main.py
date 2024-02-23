@@ -49,7 +49,7 @@ async def connect(ctx):
 @bot.slash_command(guild_ids=[guild_id])
 async def create(ctx, team1_name: discord.Option(str, default="Team1"), team2_name: discord.Option(str, default="Team2"), maplist: discord.Option(str, default="de_mirage,de_nuke")):
     await ctx.defer()
-    map_list = map_list.split(",")
+    map_list = maplist.split(",")
     if ctx.author.voice is None:
         await ctx.send("You're not in a voice channel.")
         return
