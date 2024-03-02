@@ -78,14 +78,13 @@ class MatchCog(commands.Cog):
             return
         voice_channel = ctx.author.voice.channel
         members = voice_channel.members
-        # if len(members) < 2:
-        #     await ctx.followup.send(
-        #         "You need at least 2 players to create a match.", ephemeral=True
-        #     )
-        #     return
+        if len(members) < 2:
+            await ctx.followup.send(
+                "You need at least 2 players to create a match.", ephemeral=True
+            )
+            return
         try:
             discord_users_ids = [member.id for member in members]
-            discord_users_ids.append(495214448361996298)
             maplist = maplist.split(",")
             webhook_url = f"{os.environ.get('API_URL')}/api/matches/webhook/"
             api_token = os.environ.get("API_TOKEN")
