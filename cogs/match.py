@@ -192,7 +192,7 @@ class MatchCog(commands.Cog):
                 return
             match_id = current_match.get("matchid")
             print(match_id)
-            match, match_response = await get_match(1)
+            match, match_response = await get_match(match_id)
             if match_response.status_code != 200:
                 print("No match")
                 return
@@ -249,6 +249,51 @@ class MatchCog(commands.Cog):
             lobby_channel = guild.get_channel(lobby_channel_id)
             team1_channel = guild.get_channel(team1_channel_id)
             team2_channel = guild.get_channel(team2_channel_id)
+            current_match, current_match_response = await get_curent_match()
+            if current_match_response.status_code != 200:
+                print("No current match")
+                return
+            match_id = current_match.get("matchid")
+            print(match_id)
+            match, match_response = await get_match(match_id)
+            if match_response.status_code != 200:
+                print("No match")
+                return
+            print(match)
+            team1 = match.get("team1")
+            team2 = match.get("team2")
+
+            for player in team1["players"]:
+                print(player)
+                discord_user = player.get("discord_user")
+                if not discord_user:
+                    continue
+                print(discord_user)
+                discord_user_id = discord_user.get("user_id")
+                user = guild.get_member(int(discord_user_id))
+                print(user)
+                try:
+                    await user.move_to(lobby_channel)
+                except discord.errors.HTTPException as e:
+                    print(e)
+                    continue
+
+            for player in team2["players"]:
+                print(player)
+                discord_user = player.get("discord_user")
+                if not discord_user:
+                    continue
+                print(discord_user)
+                discord_user_id = discord_user.get("user_id")
+                user = guild.get_member(int(discord_user_id))
+                print(user)
+                if not user:
+                    continue
+                try:
+                    await user.move_to(lobby_channel)
+                except discord.errors.HTTPException as e:
+                    print(e)
+                    continue
 
             await team1_channel.edit(name=data["team1"]["name"])
             await team2_channel.edit(name=data["team2"]["name"])
@@ -257,10 +302,14 @@ class MatchCog(commands.Cog):
                 description=f"{data['team1']['name']} vs {data['team2']['name']}",
                 color=discord.Colour.blurple(),
             )
+
             user = guild.get_member(264857503974555649)
             await general_channel.send(embed=embed)
             await user.move_to(lobby_channel)
         except discord.errors.HTTPException as e:
+            print(e)
+
+        except httpx.HTTPError as e:
             print(e)
 
     async def on_series_end(self, data):
