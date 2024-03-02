@@ -1,0 +1,14 @@
+version: '3.8'
+
+services:
+  bot:
+    build: .
+    command: python main.py
+    volumes:
+      - .:/app
+    networks:
+      - cs2-battle-bot-network
+
+networks:
+  cs2-battle-bot-network:
+    external: true
