@@ -302,10 +302,7 @@ class MatchCog(commands.Cog):
                 description=f"{data['team1']['name']} vs {data['team2']['name']}",
                 color=discord.Colour.blurple(),
             )
-
-            user = guild.get_member(264857503974555649)
             await general_channel.send(embed=embed)
-            await user.move_to(lobby_channel)
         except discord.errors.HTTPException as e:
             print(e)
 
