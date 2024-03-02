@@ -1,4 +1,5 @@
 import json
+import os
 import discord
 from discord.ext import commands, tasks
 import httpx
@@ -86,14 +87,16 @@ class MatchCog(commands.Cog):
             discord_users_ids = [member.id for member in members]
             discord_users_ids.append(495214448361996298)
             maplist = maplist.split(",")
+            webhook_url = f"{os.environ.get('API_URL')}/api/matches/webhook/"
+            api_token = os.environ.get("API_TOKEN")
             match_data = {
                 "discord_users_ids": discord_users_ids,
                 "maplist": maplist,
                 "shuffle_teams": shuffle_teams,
                 "cvars": {
-                    "matchzy_remote_log_url": "https://cs2-beta.sharkservers.pl/api/matches/webhook/",
+                    "matchzy_remote_log_url": webhook_url,
                     "matchzy_remote_log_header_key": "X-Api-Key",
-                    "matchzy_remote_log_header_value": "{{ _.token }}",
+                    "matchzy_remote_log_header_value": api_token,
                 },
             }
             created_match, created_match_response = await create_match(match_data)
