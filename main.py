@@ -13,21 +13,6 @@ async def on_ready():
     print(f"We have logged in as {bot.user}")
 
 
-# @tasks.loop(seconds=5)
-# async def listen_events():
-#     _redis = redis.Redis(host="redis", port=6379, db=0)
-#     print("listening")
-#     pubsub = _redis.pubsub()
-#     pubsub.subscribe("event.*")
-#     for message in pubsub.listen():
-#         print(message)
-
-
-# @listen_events.before_loop
-# async def before_listen_events():
-#     await bot.wait_until_ready()
-
-
 _redis = redis.StrictRedis(host="redis", port=6379, db=0)
 
 pubsub = _redis.pubsub()

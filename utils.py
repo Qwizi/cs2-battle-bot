@@ -12,6 +12,7 @@ MATCHES_ENDPOINT = "/api/matches/"
 CURRENT_MATCH_ENDPOINT = MATCHES_ENDPOINT + "current/"
 PLAYERS_ENDPOINT = "/api/players/"
 TEAMS_ENDPOINT = "/api/teams/"
+LOAD_MATCH_ENDPOINT = "/api/matches/load/"
 
 headers = {
     "X-Api-Key": f"{API_TOKEN}",
@@ -20,6 +21,19 @@ headers = {
 
 def get_connect_account_link():
     return f"{API_URL}/accounts/discord/"
+
+
+async def create_match(data):
+    async with httpx.AsyncClient(base_url=API_URL, headers=headers) as client:
+        response = await client.post(
+            MATCHES_ENDPOINT,
+            json=data,
+        )
+        response.raise_for_status()
+        data = None
+        if response.status_code == 201:
+            data = response.json()
+        return data, response
 
 
 async def get_curent_match():
@@ -36,6 +50,16 @@ async def get_curent_match():
 async def get_match(match_id: int):
     async with httpx.AsyncClient(base_url=API_URL, headers=headers) as client:
         response = await client.get(f"{MATCHES_ENDPOINT}{match_id}/")
+        response.raise_for_status()
+        data = None
+        if response.status_code == 200:
+            data = response.json()
+        return data, response
+
+
+async def load_match():
+    async with httpx.AsyncClient(base_url=API_URL, headers=headers) as client:
+        response = await client.post(LOAD_MATCH_ENDPOINT)
         response.raise_for_status()
         data = None
         if response.status_code == 200:

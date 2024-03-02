@@ -4,10 +4,12 @@ from discord.ext import commands, tasks
 import httpx
 
 from utils import (
+    create_match,
     get_connect_account_link,
     get_curent_match,
     get_match,
     get_teams_autocomplete,
+    load_match,
 )
 
 guild_id = 639034263999741953
@@ -17,6 +19,24 @@ general_channel_id = 1211078909127561257
 lobby_channel_id = 1211059521762492486
 team1_channel_id = 1211059841993281537
 team2_channel_id = 1211059895202484344
+
+
+class MatchView(
+    discord.ui.View
+):  # Create a class called MyView that subclasses discord.ui.View
+    @discord.ui.button(
+        label="Start!", style=discord.ButtonStyle.primary, emoji="🚀"
+    )  # Create a button with the label "😎 Click me!" with color Blurple
+    async def button_callback(self, button, interaction):
+        try:
+            response = await load_match()
+        except httpx.HTTPError as e:
+            print(e)
+            await interaction.response.send_message(
+                "Failed to start match", ephemeral=True
+            )
+        else:
+            await interaction.response.send_message("Pomyślnie załadowano mecz!")
 
 
 class MatchCog(commands.Cog):
@@ -38,20 +58,94 @@ class MatchCog(commands.Cog):
     async def create(
         self,
         ctx: discord.ApplicationContext,
-        shuffle_teams: discord.Option(bool, default=False, name="shuffle_teams"),
-        team1_name: discord.Option(
+        shuffle_teams: discord.Option(bool, default=False, name="shuffle_teams"),  # type: ignore
+        maplist: discord.Option(str, default="de_mirage,de_nuke"),  # type: ignore
+        team1_id: discord.Option(
             str,
             autocomplete=discord.utils.basic_autocomplete(get_teams_autocomplete),
             required=False,
-        ),
-        team2_name: discord.Option(
+        ),  # type: ignore
+        team2_id: discord.Option(
             str,
             autocomplete=discord.utils.basic_autocomplete(get_teams_autocomplete),
             required=False,
-        ),
+        ),  # type: ignore
     ):
         await ctx.defer()
-        await ctx.followup.send("Creating match")
+        if ctx.author.voice is None:
+            await ctx.followup.send("You're not in a voice channel.", ephemeral=True)
+            return
+        voice_channel = ctx.author.voice.channel
+        members = voice_channel.members
+        # if len(members) < 2:
+        #     await ctx.followup.send(
+        #         "You need at least 2 players to create a match.", ephemeral=True
+        #     )
+        #     return
+        try:
+            discord_users_ids = [member.id for member in members]
+            discord_users_ids.append(495214448361996298)
+            maplist = maplist.split(",")
+            match_data = {
+                "discord_users_ids": discord_users_ids,
+                "maplist": maplist,
+                "shuffle_teams": shuffle_teams,
+                "cvars": {
+                    "matchzy_remote_log_url": "https://cs2-beta.sharkservers.pl/api/matches/webhook/",
+                    "matchzy_remote_log_header_key": "X-Api-Key",
+                    "matchzy_remote_log_header_value": "{{ _.token }}",
+                },
+            }
+            created_match, created_match_response = await create_match(match_data)
+            team1 = created_match.get("team1")
+            team2 = created_match.get("team2")
+
+            team1_players = team1.get("players")
+            team2_players = team2.get("players")
+
+            team1_names = [
+                f"<@{player.get('discord_user').get('user_id')}>"
+                for player in team1_players
+            ]
+            team2_names = [
+                f"<@{player.get('discord_user').get('user_id')}>"
+                for player in team2_players
+            ]
+
+            print(created_match)
+            embed = discord.Embed(
+                title="Mecz utworzony!",
+                description="Mecz został utworzony.",
+                color=discord.Colour.blurple(),  # Pycord provides a class with default colors you can choose from
+            )
+            embed.add_field(
+                name=team1.get("name", "Team 1"),
+                value=f"{', '.join(team1_names)}",
+                inline=False,
+            )
+            embed.add_field(
+                name=team2.get("name", "Team 2"),
+                value=f"{', '.join(team2_names)}",
+                inline=False,
+            )
+            embed.add_field(name="Mapy", value=f"{', '.join(maplist)}", inline=False)
+
+        except httpx.HTTPStatusError as e:
+            data = e.response.json()
+            if "Discord user" in data.get("message"):
+                user_id = data.get("user_id")
+                await ctx.followup.send(
+                    f"Uzytkownik <@{user_id}> nie jest zarejestrowany w bazie danych",
+                )
+            await ctx.followup.send(
+                f"HTTPStatusError: Failed to create match {e}", ephemeral=True
+            )
+            print(data)
+        except httpx.HTTPError as e:
+            print(e)
+            await ctx.followup.send("HTTPError: Failed to create match", ephemeral=True)
+        else:
+            await ctx.followup.send(embed=embed, view=MatchView())
 
     @tasks.loop(seconds=5)
     async def listen_events(self):
