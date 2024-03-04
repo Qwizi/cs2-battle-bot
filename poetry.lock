@@ -536,21 +536,21 @@ files = [
 
 [[package]]
 name = "py-cord"
-version = "2.4.1"
+version = "2.5.0"
 description = "A Python wrapper for the Discord API"
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "py-cord-2.4.1.tar.gz", hash = "sha256:0266c9d9a9d2397622a0e5ead09826690e688ba3cf14c470167b81e6cd2d8a56"},
-    {file = "py_cord-2.4.1-py3-none-any.whl", hash = "sha256:862a372c364cd263e2c8e696c64887f969c02cbdf0fdd6b09f0283e9dd67a290"},
+    {file = "py-cord-2.5.0.tar.gz", hash = "sha256:faf08af5da5eac2ed3d1c8a43d8307d5a1e3f01602def283330c9d2cde0b1162"},
+    {file = "py_cord-2.5.0-py3-none-any.whl", hash = "sha256:9e5fc79feec5a48f53aa4c066b57dd75fe67d29021b042d12f378a513d308bbc"},
 ]
 
 [package.dependencies]
-aiohttp = ">=3.6.0,<3.9.0"
+aiohttp = ">=3.6.0,<4.0"
 
 [package.extras]
-docs = ["furo", "myst-parser (==0.18.1)", "sphinx (==5.3.0)", "sphinx-autodoc-typehints (==1.22)", "sphinx-copybutton (==0.5.1)", "sphinxcontrib-trio (==1.1.2)", "sphinxcontrib-websupport (==1.2.4)", "sphinxext-opengraph (==0.8.1)"]
-speed = ["aiohttp[speedups]", "orjson (>=3.5.4)"]
+docs = ["furo (==2023.3.23)", "myst-parser (==1.0.0)", "sphinx (==5.3.0)", "sphinx-autodoc-typehints (==1.23.0)", "sphinx-copybutton (==0.5.2)", "sphinxcontrib-trio (==1.1.2)", "sphinxcontrib-websupport (==1.2.4)", "sphinxext-opengraph (==0.9.1)"]
+speed = ["aiohttp[speedups]", "msgspec (>=0.18.6,<0.19.0)"]
 voice = ["PyNaCl (>=1.3.0,<1.6)"]
 
 [[package]]

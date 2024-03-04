@@ -109,3 +109,35 @@ async def get_teams_autocomplete(ctx: discord.AutocompleteContext):
     except httpx.HTTPError as e:
         print(e)
         return []
+
+
+async def ban_map(match_id: str, team_id: str, map_tag: str):
+    async with httpx.AsyncClient(base_url=API_URL, headers=headers) as client:
+        response = await client.post(
+            f"{MATCHES_ENDPOINT}{match_id}/map_ban/",
+            json={
+                "team_id": team_id,
+                "map_tag": map_tag,
+            },
+        )
+        response.raise_for_status()
+        data = None
+        if response.status_code == 201:
+            data = response.json()
+        return data, response
+
+
+async def pick_map(match_id: str, team_id: str, map_tag: str):
+    async with httpx.AsyncClient(base_url=API_URL, headers=headers) as client:
+        response = await client.post(
+            f"{MATCHES_ENDPOINT}{match_id}/map_pick/",
+            json={
+                "team_id": team_id,
+                "map_tag": map_tag,
+            },
+        )
+        response.raise_for_status()
+        data = None
+        if response.status_code == 201:
+            data = response.json()
+        return data, response
