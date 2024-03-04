@@ -141,3 +141,27 @@ async def pick_map(match_id: str, team_id: str, map_tag: str):
         if response.status_code == 201:
             data = response.json()
         return data, response
+
+
+async def recreate_match(match_id: str):
+    async with httpx.AsyncClient(base_url=API_URL, headers=headers) as client:
+        response = await client.post(
+            f"{MATCHES_ENDPOINT}{match_id}/recreate/",
+        )
+        response.raise_for_status()
+        data = None
+        if response.status_code == 201:
+            data = response.json()
+        return data, response
+
+
+async def shuffle_teams(match_id: str):
+    async with httpx.AsyncClient(base_url=API_URL, headers=headers) as client:
+        response = await client.post(
+            f"{MATCHES_ENDPOINT}{match_id}/shuffle_teams/",
+        )
+        response.raise_for_status()
+        data = None
+        if response.status_code == 201:
+            data = response.json()
+        return data, response

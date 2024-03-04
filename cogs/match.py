@@ -21,6 +21,8 @@ from utils import (
     get_teams_autocomplete,
     load_match,
     pick_map,
+    recreate_match,
+    shuffle_teams,
 )
 
 guild_id = 639034263999741953
@@ -115,6 +117,11 @@ class MatchCog(commands.Cog):
 
     async def start_match_button_callback(self, interaction: discord.Interaction):
         await interaction.response.defer()
+        if interaction.user.id != int(interaction.message.embeds[0].footer.text):
+            await interaction.followup.send(
+                "Tylko autor komendy moze wykonac ta akcje", ephemeral=True
+            )
+            return
         try:
             response = await load_match()
         except httpx.HTTPError as e:
@@ -124,6 +131,63 @@ class MatchCog(commands.Cog):
             )
         else:
             await interaction.followup.send("Pomyślnie załadowano mecz!")
+
+    async def recreate_match_button_callback(self, interaction: discord.Interaction):
+        await interaction.response.defer()
+        if interaction.user.id != int(interaction.message.embeds[0].footer.text):
+            await interaction.followup.send(
+                "Tylko autor komendy moze wykonac ta akcje", ephemeral=True
+            )
+            return
+        try:
+            current_match, current_match_response = await get_curent_match()
+            match_id = current_match.get("matchid")
+            match, match_response = await recreate_match(match_id)
+            print(match)
+            match_type = match.get("type")
+            map_select_view, select_menu = self.create_map_select_view(
+                "Wybierz mape do zbanowania",
+                [
+                    discord.SelectOption(label=map["tag"], value=map["tag"])
+                    for map in match.get("maps")
+                ],
+            )
+            match match_type:
+                case "BO1":
+                    select_menu.callback = self.bo1_map_ban_callback
+                case "BO3":
+                    select_menu.callback = self.bo3_map_ban_callback
+
+            await interaction.edit(view=map_select_view)
+
+        except httpx.HTTPError as e:
+            print(e)
+            await interaction.response.send_message(
+                "Failed to start match", ephemeral=True
+            )
+
+    async def shuffle_teams_button_callback(self, interaction: discord.Interaction):
+        await interaction.response.defer()
+        # check if interaction user is a author of command
+        if interaction.user.id != int(interaction.message.embeds[0].footer.text):
+            await interaction.followup.send(
+                "Tylko autor komendy moze przelosowac druzyny", ephemeral=True
+            )
+            return
+        try:
+            current_match, current_match_response = await get_curent_match()
+            match_id = current_match.get("matchid")
+            match, match_response = await shuffle_teams(match_id)
+            create_match_embed = self.create_match_embed(
+                match, int(interaction.message.embeds[0].footer.text)
+            )
+            await interaction.edit(embed=create_match_embed)
+
+        except httpx.HTTPError as e:
+            print(e)
+            await interaction.response.send_message(
+                "Failed to start match", ephemeral=True
+            )
 
     async def bo1_map_ban_callback(self, interaction: discord.Interaction):
         await interaction.response.defer()
@@ -185,7 +249,9 @@ class MatchCog(commands.Cog):
             await message.edit(view=view)
             if len(match.get("maps")) == 1:
                 match_launch_embed = self.create_launch_match_embed(
-                    message.embeds[0], match
+                    message.embeds[0],
+                    match,
+                    int(interaction.message.embeds[0].footer.text),
                 )
                 match_launch_view = self.create_launch_match_view()
                 await interaction.followup.send(
@@ -196,7 +262,9 @@ class MatchCog(commands.Cog):
                 await interaction.followup.send(
                     f"<@{interaction.user.id}> zbanowal mape {chosen_map}"
                 )
-
+        except httpx.HTTPStatusError as e:
+            print(e.response.json())
+            await interaction.followup.send("Failed to ban map", ephemeral=True)
         except httpx.HTTPError as e:
             print(e)
             await interaction.followup.send("Failed to ban map", ephemeral=True)
@@ -383,7 +451,9 @@ class MatchCog(commands.Cog):
             if len(match.get("maps")) == 3:
                 launch_match_view = self.create_launch_match_view()
                 match_launch_embed = self.create_launch_match_embed(
-                    message.embeds[0], match
+                    message.embeds[0],
+                    match,
+                    int(interaction.message.embeds[0].footer.text),
                 )
                 maps_tags = [f"{map['tag']}" for map in match.get("maps")]
                 await interaction.followup.send(f"Gramy mapy {', '.join(maps_tags)}")
@@ -443,7 +513,7 @@ class MatchCog(commands.Cog):
                 return
         try:
             discord_users_ids = (
-                [ctx.author.id, 859429903170273321]
+                [ctx.author.id, 859429903170273321, 692055783650754650]
                 if TESTING
                 else [member.id for member in members]
             )
@@ -463,7 +533,9 @@ class MatchCog(commands.Cog):
                 },
             }
             created_match, created_match_response = await create_match(match_data)
-            match_embed = self.create_match_embed(created_match)
+            match_embed = self.create_match_embed(
+                created_match, author_id=ctx.author.id
+            )
             map_select_view, select_menu = self.create_map_select_view(
                 "Wybierz mape do zbanowania",
                 [
@@ -471,6 +543,14 @@ class MatchCog(commands.Cog):
                     for map in created_match.get("maps")
                 ],
             )
+            shuffle_teams_button = discord.ui.Button(
+                label="Przelosuj druzyny!",
+                style=discord.ButtonStyle.secondary,
+                emoji="🔀",
+            )
+
+            shuffle_teams_button.callback = self.shuffle_teams_button_callback
+            map_select_view.add_item(shuffle_teams_button)
             match match_type:
                 case "BO1":
                     select_menu.callback = self.bo1_map_ban_callback
@@ -552,7 +632,7 @@ class MatchCog(commands.Cog):
             return []
         return [f"<@{player.get('discord_user').get('user_id')}>" for player in players]
 
-    def create_match_embed(self, match) -> discord.Embed:
+    def create_match_embed(self, match, author_id: int) -> discord.Embed:
         team1 = match.get("team1")
         team2 = match.get("team2")
         team1_players = team1.get("players")
@@ -593,20 +673,37 @@ class MatchCog(commands.Cog):
             value=team2_leader_mention,
             inline=False,
         )
+        embed.set_footer(text=author_id)
         return embed
 
-    def create_launch_match_embed(self, old_embed: discord.Embed, match):
+    def create_launch_match_embed(
+        self, old_embed: discord.Embed, match, author_id: int
+    ):
         new_embed = discord.Embed()
         new_embed.color = old_embed.color
         new_embed.title = old_embed.title
         new_embed.description = old_embed.description
         new_embed.fields = old_embed.fields
         maps_tags = [f"{map['tag']}" for map in match.get("maps")]
-        new_embed.add_field(
-            name="Map",
-            value=", ".join(maps_tags),
-            inline=False,
-        )
+        field_map_exists = False
+        for field in old_embed.fields:
+            if field.name == "Map":
+                field_map_exists = True
+                break
+        if not field_map_exists:
+            new_embed.add_field(
+                name="Map",
+                value=f"{', '.join(maps_tags)}",
+                inline=False,
+            )
+        else:
+            new_embed.set_field_at(
+                4,
+                name="Map",
+                value=f"{', '.join(maps_tags)}",
+                inline=False,
+            )
+        new_embed.set_footer(text=author_id)
         return new_embed
 
     def create_launch_match_view(self) -> discord.ui.View:
@@ -617,7 +714,20 @@ class MatchCog(commands.Cog):
             emoji="🚀",
         )
         start_button.callback = self.start_match_button_callback
+        join_button = discord.ui.Button(
+            label="Dolacz do serwera!",
+            style=discord.ButtonStyle.secondary,
+            url="http://localhost:8002/accounts/join/",
+        )
+        recreate_button = discord.ui.Button(
+            label="Utworz nowy mecz z tymi samymi druzynami!",
+            style=discord.ButtonStyle.secondary,
+            emoji="🔄",
+        )
+        recreate_button.callback = self.recreate_match_button_callback
         match_view.add_item(start_button)
+        match_view.add_item(join_button)
+        match_view.add_item(recreate_button)
         return match_view
 
     def create_map_select_view(
