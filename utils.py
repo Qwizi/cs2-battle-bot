@@ -59,7 +59,7 @@ async def get_match(match_id: int):
 
 async def load_match():
     async with httpx.AsyncClient(base_url=API_URL, headers=headers) as client:
-        response = await client.post(LOAD_MATCH_ENDPOINT)
+        response = await client.post(LOAD_MATCH_ENDPOINT, timeout=15)
         response.raise_for_status()
         data = None
         if response.status_code == 200:
