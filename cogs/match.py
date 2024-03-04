@@ -5,12 +5,6 @@ from discord.ui import View
 
 from discord.ext import commands, tasks
 from dotenv import load_dotenv
-import httpx
-
-load_dotenv()
-
-TESTING = os.environ.get("TESTING", False)
-
 
 from utils import (
     ban_map,
@@ -24,6 +18,14 @@ from utils import (
     recreate_match,
     shuffle_teams,
 )
+
+import httpx
+from prettytable import PrettyTable
+
+load_dotenv()
+
+TESTING = os.environ.get("TESTING", False)
+
 
 guild_id = 639034263999741953
 info_channel_id = 1210935599972749312
@@ -228,6 +230,7 @@ class MatchCog(commands.Cog):
             )
 
             match, match_response = await get_match(match_id)
+            current_match, current_match_response = await get_curent_match()
             print(match)
 
             view = MapView()
@@ -250,12 +253,12 @@ class MatchCog(commands.Cog):
             if len(match.get("maps")) == 1:
                 match_launch_embed = self.create_launch_match_embed(
                     message.embeds[0],
-                    match,
+                    current_match.get("maplist"),
                     int(interaction.message.embeds[0].footer.text),
                 )
                 match_launch_view = self.create_launch_match_view()
                 await interaction.followup.send(
-                    f"Gramy mape {match.get('maps')[0].get('tag')}"
+                    f"Gramy mape {current_match.get('maplist')[0]}"
                 )
                 await message.edit(view=match_launch_view, embed=match_launch_embed)
             else:
@@ -391,6 +394,7 @@ class MatchCog(commands.Cog):
             )
 
             match, match_response = await get_match(match_id)
+            current_match, current_match_response = await get_curent_match()
             map_bans = match.get("map_bans")
             if len(map_bans) == 2 or len(map_bans) == 3 or len(map_bans) == 4:
                 print(f"Liczba banów {len(map_bans)}")
@@ -452,10 +456,10 @@ class MatchCog(commands.Cog):
                 launch_match_view = self.create_launch_match_view()
                 match_launch_embed = self.create_launch_match_embed(
                     message.embeds[0],
-                    match,
+                    current_match.get("maplist"),
                     int(interaction.message.embeds[0].footer.text),
                 )
-                maps_tags = [f"{map['tag']}" for map in match.get("maps")]
+                maps_tags = [f"{map}" for map in current_match.get("maplist")]
                 await interaction.followup.send(f"Gramy mapy {', '.join(maps_tags)}")
                 await message.edit(view=launch_match_view, embed=match_launch_embed)
             else:
@@ -676,15 +680,13 @@ class MatchCog(commands.Cog):
         embed.set_footer(text=author_id)
         return embed
 
-    def create_launch_match_embed(
-        self, old_embed: discord.Embed, match, author_id: int
-    ):
+    def create_launch_match_embed(self, old_embed: discord.Embed, maps, author_id: int):
         new_embed = discord.Embed()
         new_embed.color = old_embed.color
         new_embed.title = old_embed.title
         new_embed.description = old_embed.description
         new_embed.fields = old_embed.fields
-        maps_tags = [f"{map['tag']}" for map in match.get("maps")]
+        maps_tags = [f"{map}" for map in maps]
         field_map_exists = False
         for field in old_embed.fields:
             if field.name == "Map":
@@ -717,7 +719,9 @@ class MatchCog(commands.Cog):
         join_button = discord.ui.Button(
             label="Dolacz do serwera!",
             style=discord.ButtonStyle.secondary,
-            url="http://localhost:8002/accounts/join/",
+            url="http://localhost:8002/accounts/join/"
+            if TESTING
+            else f"{os.environ.get('API_URL')}/accounts/join/",
         )
         recreate_button = discord.ui.Button(
             label="Utworz nowy mecz z tymi samymi druzynami!",
@@ -742,6 +746,40 @@ class MatchCog(commands.Cog):
         )
         view.add_item(select_menu)
         return view, select_menu
+
+    def insert_player_stats(self, table, player):
+        table.add_row(
+            [
+                player.get("name"),
+                player.get("stats").get("kills"),
+                player.get("stats").get("deaths"),
+                player.get("stats").get("assists"),
+                player.get("stats").get("score"),
+            ]
+        )
+        return table
+
+    def create_player_stats_table(self, players):
+        table = PrettyTable()
+
+        table.field_names = ["Player", "Kills", "Deaths", "Assists", "Score"]
+        for player in players:
+            table = self.insert_player_stats(table, player)
+        return table
+
+    def create_team_stats_embed(self, team_name, stats, status=None):
+        color = discord.Colour.dark_theme()
+        if status == "win":
+            color = discord.Colour.green()
+        elif status == "lose":
+            color = discord.Colour.red()
+
+        embed = discord.Embed(
+            title=f"Team {team_name}",
+            description=f"```{stats.get_string()}```",
+            color=color,
+        )
+        return embed
 
     async def on_going_live(self, data):
         print("Going live")
@@ -799,6 +837,8 @@ class MatchCog(commands.Cog):
                     continue
 
         except httpx.HTTPError as e:
+            print(e)
+        except Exception as e:
             print(e)
 
     async def on_series_start(self, data):
@@ -881,23 +921,22 @@ class MatchCog(commands.Cog):
             await team2_channel.edit(name="Team 2")
         except discord.errors.HTTPException as e:
             print(e)
+        except Exception as e:
+            print(e)
 
     async def on_map_result(self, data):
         print("Map result")
         try:
-            current_match, current_match_response = await get_curent_match()
-            if current_match_response.status_code != 200:
-                print("No current match")
-                return
-            match_id = current_match.get("matchid")
+            match_id = data.get("matchid")
             print(match_id)
             match, match_response = await get_match(match_id)
             if match_response.status_code != 200:
                 print("No match")
                 return
-            print(match)
             team1 = match.get("team1")
             team2 = match.get("team2")
+            team1_players = data.get("team1").get("players")
+            team2_players = data.get("team2").get("players")
             guild = self.bot.get_guild(guild_id)
             general_channel = guild.get_channel(general_channel_id)
             lobby_channel = guild.get_channel(lobby_channel_id)
@@ -905,14 +944,11 @@ class MatchCog(commands.Cog):
             team2_channel = guild.get_channel(team2_channel_id)
 
             for player in team1["players"]:
-                print(player)
                 discord_user = player.get("discord_user")
                 if not discord_user:
                     continue
-                print(discord_user)
                 discord_user_id = discord_user.get("user_id")
                 user = guild.get_member(int(discord_user_id))
-                print(user)
                 try:
                     await user.move_to(lobby_channel)
                 except discord.errors.HTTPException as e:
@@ -935,12 +971,52 @@ class MatchCog(commands.Cog):
                 except discord.errors.HTTPException as e:
                     print(e)
                     continue
+            team1_table = self.create_player_stats_table(team1_players)
+            team2_table = self.create_player_stats_table(team2_players)
+
+            team1_embed = self.create_team_stats_embed(
+                team1.get("name"),
+                team1_table,
+                "win" if data.get("winner").get("team") == "team1" else "lose",
+            )
+            team2_embed = self.create_team_stats_embed(
+                team2.get("name"),
+                team2_table,
+                "win" if data.get("winner").get("team") == "team2" else "lose",
+            )
+
+            await general_channel.send(
+                "Statystyki dla mapy", embeds=[team1_embed, team2_embed]
+            )
 
         except httpx.HTTPError as e:
             print(e)
 
+        except Exception as e:
+            print(e)
+
     async def on_round_end(self, data):
-        print("Round end")
+        try:
+            team1 = data.get("team1")
+            team2 = data.get("team2")
+            team1_players = team1.get("players")
+            team2_players = team2.get("players")
+
+            team1_table = self.create_player_stats_table(team1_players)
+            team2_table = self.create_player_stats_table(team2_players)
+
+            guild = self.bot.get_guild(guild_id)
+            general_channel = guild.get_channel(general_channel_id)
+            team1_embed = self.create_team_stats_embed(team1.get("name"), team1_table)
+            team2_embed = self.create_team_stats_embed(team2.get("name"), team2_table)
+            await general_channel.send(
+                f"Statystyki dla rundy {data.get('round_number')}",
+                embeds=[team1_embed, team2_embed],
+            )
+        except httpx.HTTPError as e:
+            print(e)
+        except Exception as e:
+            print(e)
 
     async def on_side_picked(self, data):
         print("Side picked")
