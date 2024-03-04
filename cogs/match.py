@@ -22,7 +22,15 @@ from utils import (
 import httpx
 from prettytable import PrettyTable
 
-load_dotenv()
+# .env file in ../ directory
+
+# Get the path to the parent directory
+parent_dir = os.path.abspath(os.path.join(os.getcwd(), os.pardir))
+
+# Construct the path to the .env file
+env_file_path = os.path.join(parent_dir, ".env")
+
+load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), "..", ".env"))
 
 TESTING = os.environ.get("TESTING", False)
 
@@ -509,7 +517,8 @@ class MatchCog(commands.Cog):
             return
         voice_channel = ctx.author.voice.channel
         members = voice_channel.members
-        if not TESTING:
+        print(TESTING)
+        if TESTING is False:
             if len(members) < 2:
                 await ctx.followup.send(
                     "You need at least 2 players to create a match.", ephemeral=True
@@ -518,7 +527,7 @@ class MatchCog(commands.Cog):
         try:
             discord_users_ids = (
                 [ctx.author.id, 859429903170273321, 692055783650754650]
-                if TESTING
+                if TESTING is True
                 else [member.id for member in members]
             )
             # maplist = maplist.split(",")
@@ -720,7 +729,7 @@ class MatchCog(commands.Cog):
             label="Dolacz do serwera!",
             style=discord.ButtonStyle.secondary,
             url="http://localhost:8002/accounts/join/"
-            if TESTING
+            if TESTING is True
             else f"{os.environ.get('API_URL')}/accounts/join/",
         )
         recreate_button = discord.ui.Button(
