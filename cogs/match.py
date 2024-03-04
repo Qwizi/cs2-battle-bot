@@ -520,7 +520,7 @@ class MatchCog(commands.Cog):
             # maplist = maplist.split(",")
             # print(maplist)
             api_token = os.environ.get("API_TOKEN")
-            webhook_url = f"{os.environ.get('API_URL')}/api/maches/webhook/"
+            webhook_url = f"{os.environ.get('API_URL')}/api/matches/webhook/"
             match_data = {
                 "discord_users_ids": discord_users_ids,
                 # "maplist": maplist,
