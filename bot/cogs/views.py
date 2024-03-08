@@ -8,7 +8,6 @@ import httpx
 from bot.api import (
     ban_map,
     get_curent_match,
-    get_match,
     get_match_map_bans,
     get_match_map_picks,
     load_match,
@@ -19,7 +18,7 @@ from bot.api import (
 from bot.cogs.utils import (
     update_match_embed_with_maps,
 )
-from bot.schemas import CreateBanMap, CreatePickMap, CurrentMatch, Match
+from bot.schemas import CreateBanMap, CreatePickMap, Match
 from bot.settings import settings
 
 
@@ -232,7 +231,6 @@ class MapBanView(MapView):
         -------
             None
         """
-
         team_leaders = match.get_teams_leaders()
         map_bans, _ = await get_match_map_bans(match.id)
         map_bans_count = map_bans.count
@@ -309,7 +307,7 @@ class MapBanView(MapView):
                     view=launch_match_view,
                 )
         except Exception as e:  # Add error handling for unexpected issues
-            print(f"Error during map ban: {repr(e)}")
+            print(f"Error during map ban: {e!r}")
             await interaction.user.send(
                 "An error occurred during the map ban process. Please try again or contact support."
             )
@@ -423,7 +421,7 @@ class MapPickView(MapView):
                     )
                 )
         except Exception as e:  # Add error handling for unexpected issues
-            print(f"Error during map pick: {repr(e)}")
+            print(f"Error during map pick: {e!r}")
             await interaction.user.send(
                 "An error occurred during the map pick process. Please try again or contact support."
             )

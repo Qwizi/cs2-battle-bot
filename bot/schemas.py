@@ -1,7 +1,8 @@
 from __future__ import annotations
-from typing import Optional
-import discord
 
+from typing import Optional
+
+import discord
 from pydantic import BaseModel
 
 
@@ -237,12 +238,14 @@ class Match(BaseModel):
             discord.Embed: Embed with match information.
 
         """
-        team1_mentioned_leader, team2_mentioned_leader = (
-            self.get_mentioned_team_leaders()
-        )
-        team1_mentioned_players, team2_mentioned_players = (
-            self.get_mentioned_team_players()
-        )
+        (
+            team1_mentioned_leader,
+            team2_mentioned_leader,
+        ) = self.get_mentioned_team_leaders()
+        (
+            team1_mentioned_players,
+            team2_mentioned_players,
+        ) = self.get_mentioned_team_players()
         teams = [
             (self.team1.name, team1_mentioned_leader, team1_mentioned_players),
             (self.team2.name, team2_mentioned_leader, team2_mentioned_players),

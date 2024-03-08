@@ -3,9 +3,8 @@
 from __future__ import annotations
 
 import discord
-from bot.schemas import Match
 
-from bot.settings import settings
+from bot.schemas import Match
 
 
 def get_discord_users_ids(players: list[dict]) -> list[int]:

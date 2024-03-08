@@ -11,7 +11,6 @@ from redis.client import PubSub  # noqa: TCH002
 from bot.api import (
     create_match,
     get_connect_account_link,
-    get_curent_match,
 )
 from bot.cogs.views import MapBanView
 from bot.events.going_live import OnGoingLiveEvent
