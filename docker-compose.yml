@@ -3,9 +3,8 @@ version: '3.8'
 services:
   bot:
     build: .
-    command: python main.py
     volumes:
-      - .:/app
+      - ./:/app
     networks:
       - cs2-battle-bot-network
 

@@ -1,9 +1,11 @@
 [tool.poetry]
-name = "discord-bot"
-version = "0.1.0"
+name = "cs2-battle-bot"
+version = "0.0.5"
 description = ""
 authors = ["Adrian Ciolek <ciolek.adrian@protonmail.com>"]
 readme = "README.md"
+packages = [{include = "bot/"}]
+
 
 [tool.poetry.dependencies]
 python = "^3.11"
@@ -12,8 +14,62 @@ python-dotenv = "^1.0.1"
 httpx = "^0.27.0"
 redis = "^5.0.2"
 prettytable = "^3.10.0"
+pydantic-settings = "^2.2.1"
+pydantic = "^2.6.3"
+taskipy = "^1.12.2"
+sentry-sdk = "^1.41.0"
 
+
+[tool.poetry.group.dev.dependencies]
+ruff = "^0.3.0"
+pre-commit = "^3.6.2"
 
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.taskipy.tasks]
+start = "python -m bot"
+
+[tool.ruff]
+exclude = ["tests/"]
+select = ["ALL"]
+ignore = [
+    # Description: Missing type annotation for self in method
+    # Rationale: It is mostly redundant, as is for ANN102.
+    "ANN101",
+
+    # Description: Missing type annotation for cls in method
+    # Rationale: It is mostly redundant, as is for ANN101.
+    "ANN102",
+
+    # Description: Dynamically typed expressions (typing.Any) are disallowed
+    # Rationale:
+    #  We use Any to allow user to constrain return types of our functions on their own.
+    #  For example, having a function `def foo() -> Any: ...` allows user to write
+    #  `my_foo: int = foo()` and have it passed type checking, since `Any` disables
+    #  type checking completely.
+    "ANN401",
+
+    # Description: 1 blank line required before class docstring
+    # Rationale: Remove the warning -- D211 (no-blank-line-before-class) preferred.
+    "D203",
+
+    # Description: Multi-line docstring summary should start at the second line
+    # Rationale: Remove the warning -- D213 (multi-line-summary-second-line) preferred.
+    "D212",
+
+    # Description: Line contains TODO, consider resolving the issue
+    # Rationale: Not appropriate for the project.
+    "FIX002",
+
+    "D401",
+    "ISC001",
+    "COM812",
+    "E501",
+    "RUF012",
+    "T201",
+    "TCH001",
+    "A003",
+    "ARG002"
+]
