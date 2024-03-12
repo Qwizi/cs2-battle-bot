@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import discord
 import httpx
+import sentry_sdk
 from discord.ext import commands, tasks
 from pydantic import ValidationError
 from redis.client import PubSub  # noqa: TCH002
@@ -11,23 +12,23 @@ from redis.client import PubSub  # noqa: TCH002
 from bot.api import (
     create_match,
     get_connect_account_link,
+    update_match_author_id,
+    update_match_message_id,
 )
 from bot.cogs.views import MapBanView
-from bot.events.going_live import OnGoingLiveEvent
+from bot.events.events import (
+    OnGoingLiveEvent,
+    OnMapResultEvent,
+    OnRoundEndEvent,
+    OnSeriesEndEvent,
+    OnSeriesStartEvent,
+)
 from bot.events.listener import EventListener
+from bot.logger import logger
 from bot.schemas import CreateMatch
 from bot.settings import settings
 
-TESTING = settings.TESTING
-
-
-guild_id = 639034263999741953
-info_channel_id = 1210935599972749312
-status_message_id = 1213212463563280454
-general_channel_id = 1211078909127561257
-lobby_channel_id = 1211059521762492486
-team1_channel_id = 1211059841993281537
-team2_channel_id = 1211059895202484344
+guild_id = settings.GUILD_ID
 
 
 class MatchCog(commands.Cog):
@@ -43,7 +44,7 @@ class MatchCog(commands.Cog):
         name="match", description="Commands for managing matches"
     )
 
-    @match.command(guild_ids=[guild_id])
+    @match.command(guild_ids=[settings.GUILD_ID])
     async def connect(self, ctx: discord.ApplicationContext) -> None:
         """
         Get connect account link command.
@@ -60,7 +61,7 @@ class MatchCog(commands.Cog):
         connect_account_link = get_connect_account_link()
         await ctx.respond(f"[Połącz konto]({connect_account_link})", ephemeral=True)
 
-    @match.command(guild_ids=[guild_id])
+    @match.command(guild_ids=[settings.GUILD_ID])
     async def create(
         self,
         ctx: discord.ApplicationContext,
@@ -71,7 +72,7 @@ class MatchCog(commands.Cog):
                 discord.OptionChoice(name="BO3", value="BO3"),
                 discord.OptionChoice(name="BO5", value="BO5"),
             ],
-            default="BO1",
+            default="BO3",
             name="match_type",
         ),
     ) -> None:
@@ -95,7 +96,7 @@ class MatchCog(commands.Cog):
             return
         voice_channel = ctx.author.voice.channel
         members = voice_channel.members
-        if TESTING is False and len(members) < settings.MIN_PLAYERS:
+        if settings.TESTING is False and len(members) < settings.MIN_PLAYERS:
             await ctx.followup.send(
                 "Wymange 2 graczy, by rozpoczac mecz", ephemeral=True
             )
@@ -122,58 +123,70 @@ class MatchCog(commands.Cog):
             None
 
         """
+        discord_users_ids = [member.id for member in members]
+        if settings.TESTING:
+            discord_users_ids = [
+                ctx.author.id,
+                859429903170273321,
+                692055783650754650,
+            ]
+
+        api_token = settings.API_TOKEN
+        webhook_url = f"{settings.API_URL}/api/matches/webhook/"
+
+        # Create match
         try:
-            discord_users_ids = [member.id for member in members]
-            if TESTING:
-                discord_users_ids = [
-                    ctx.author.id,
-                    859429903170273321,
-                    692055783650754650,
-                ]
-
-            api_token = settings.API_TOKEN
-            webhook_url = f"{settings.API_URL}/api/matches/webhook/"
-
-            # Create match
-            try:
-                created_match, _ = await create_match(
-                    data=CreateMatch(
-                        discord_users_ids=discord_users_ids,
-                        shuffle_teams=True,
-                        match_type=match_type,
-                        map_sides=["knife", "knife", "knife"],
-                        cvars={
-                            "matchzy_remote_log_url": webhook_url,
-                            "matchzy_remote_log_header_key": "X-Api-Key",
-                            "matchzy_remote_log_header_value": api_token,
-                        },
-                    )
+            created_match, _ = await create_match(
+                data=CreateMatch(
+                    discord_users_ids=discord_users_ids,
+                    shuffle_teams=True,
+                    match_type=match_type,
+                    map_sides=["knife", "knife", "knife"],
+                    cvars={
+                        "matchzy_remote_log_url": webhook_url,
+                        "matchzy_remote_log_header_key": "X-Api-Key",
+                        "matchzy_remote_log_header_value": api_token,
+                    },
                 )
-
-                # Send match embed and map ban view
-                match_embed = created_match.create_match_embed(ctx.author.id)
-                map_ban_view = MapBanView(
-                    options=[
-                        discord.SelectOption(label=tag, value=tag)
-                        for tag in created_match.get_maps_tags()
-                    ],
-                    match=created_match,
-                )
-
-                await ctx.followup.send(embed=match_embed, view=map_ban_view)
-
-            except httpx.HTTPError as exc:
-                self.handle_http_error(exc, ctx)
-            except ValidationError as exc:
-                await ctx.followup.send(
-                    "ValidationError: Failed to create match", ephemeral=True
-                )
-                print(repr(exc))
-        except (discord.errors.HTTPException, AttributeError) as exc:
-            print(repr(exc))
-            await ctx.followup.send(
-                f"{type(exc).__name__}: Failed to create match", ephemeral=True
             )
+
+            # Send match embed and map ban view
+
+            map_ban_view = MapBanView(
+                options=[
+                    discord.SelectOption(label=tag, value=tag)
+                    for tag in created_match.get_maps_tags()
+                ],
+                match=created_match,
+            )
+
+            updated_match, _ = await update_match_author_id(
+                match_id=created_match.id, author_id=ctx.author.id
+            )
+
+            match_embed = updated_match.create_match_embed()
+
+            message = await ctx.followup.send(
+                embed=match_embed,
+                view=map_ban_view,
+                wait=True,
+                allowed_mentions=discord.AllowedMentions(users=True, roles=True),
+            )
+
+            await update_match_message_id(
+                match_id=created_match.id, message_id=message.id
+            )
+            logger.debug(
+                f"User {ctx.author.id} created match {created_match.id} of type {match_type} with members {discord_users_ids}. Message id {message.id}"
+            )
+        except httpx.HTTPError as exc:
+            self.handle_http_error(exc, ctx)
+        except ValidationError as exc:
+            await ctx.followup.send(
+                "ValidationError: Failed to create match", ephemeral=True
+            )
+            logger.error(exc.json())
+            sentry_sdk.capture_exception(exc)
 
     async def handle_http_error(
         self, exc: httpx.HTTPError, ctx: discord.ApplicationContext
@@ -181,7 +194,8 @@ class MatchCog(commands.Cog):
         """Handles HTTP errors gracefully."""
         data = exc.response.json()
         message = data.get("message")
-
+        logger.error(data)
+        sentry_sdk.capture_exception(exc)
         if message and "Discord user" in message:
             user_id = data.get("user_id")
             await ctx.followup.send(
@@ -192,7 +206,6 @@ class MatchCog(commands.Cog):
                 f"HTTP {exc.response.status_code}: Failed to create match",
                 ephemeral=True,
             )
-        print(data)
 
     @tasks.loop(seconds=5)
     async def listen_events(self) -> None:
@@ -219,7 +232,14 @@ class MatchCog(commands.Cog):
 
         """
         event_listener = EventListener(
-            [OnGoingLiveEvent(self.bot, "going_live")], pubsub=self.pubsub
+            [
+                OnGoingLiveEvent(self.bot, "going_live"),
+                OnSeriesStartEvent(self.bot, "series_start"),
+                OnSeriesEndEvent(self.bot, "series_end"),
+                OnMapResultEvent(self.bot, "map_result"),
+                OnRoundEndEvent(self.bot, "round_end"),
+            ],
+            pubsub=self.pubsub,
         )
         await event_listener.listen()
 

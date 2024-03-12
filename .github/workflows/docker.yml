@@ -1,7 +1,8 @@
 name: Publish Backend Docker image
 
 on:
-  workflow_dispatch:
+  release:
+    types: [published]
 
 
 jobs:

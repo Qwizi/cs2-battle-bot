@@ -1,6 +1,8 @@
+"""API module."""
+
 from __future__ import annotations
 
-import discord
+import discord  # noqa: TCH002
 import httpx
 
 from bot.schemas import (
@@ -26,7 +28,8 @@ headers = {
 }
 
 
-def get_connect_account_link():
+def get_connect_account_link() -> str:
+    """Return the connect account link."""
     return f"{API_URL}/accounts/discord/"
 
 
@@ -103,47 +106,104 @@ async def get_match(match_id: int) -> tuple[Match, httpx.Response]:
         return data, response
 
 
-async def load_match():
+async def load_match() -> tuple[Match, httpx.Response]:
+    """
+    Load a match.
+
+    Args:
+    ----
+        None
+
+    Returns:
+    -------
+        tuple[Match, httpx.Response]: The match and the response.
+
+    """
     async with httpx.AsyncClient(base_url=API_URL, headers=headers) as client:
         response = await client.post(LOAD_MATCH_ENDPOINT, timeout=15)
         response.raise_for_status()
         data = None
-        if response.status_code == 200:
+        if response.status_code == httpx.codes.OK:
             data = response.json()
+            data = Match(**data)
         return data, response
 
 
-async def get_players():
+async def get_players() -> tuple[dict, httpx.Response]:
+    """
+    Get players.
+
+    Args:
+    ----
+        None
+
+    """
     async with httpx.AsyncClient(base_url=API_URL, headers=headers) as client:
         response = await client.get(PLAYERS_ENDPOINT)
         response.raise_for_status()
         data = None
-        if response.status_code == 200:
+        if response.status_code == httpx.codes.OK:
             data = response.json()
         return data, response
 
 
-async def get_player(player_id: str):
+async def get_player(player_id: str) -> tuple[dict, httpx.Response]:
+    """
+    Get player.
+
+    Args:
+    ----
+        player_id (str): The player id.
+
+    Returns:
+    -------
+        tuple[dict, httpx.Response]: The player and the response.
+
+    """
     async with httpx.AsyncClient(base_url=API_URL, headers=headers) as client:
         response = await client.get(PLAYERS_ENDPOINT + player_id)
         response.raise_for_status()
         data = None
-        if response.status_code == 200:
+        if response.status_code == httpx.codes.OK:
             data = response.json()
         return data, response
 
 
-async def get_teams():
+async def get_teams() -> tuple[dict, httpx.Response]:
+    """
+    Get teams.
+
+    Args:
+    ----
+        None
+
+    Returns:
+    -------
+        tuple[dict, httpx.Response]: The teams and the response.
+
+    """
     async with httpx.AsyncClient(base_url=API_URL, headers=headers) as client:
         response = await client.get(TEAMS_ENDPOINT)
         response.raise_for_status()
         data = None
-        if response.status_code == 200:
+        if response.status_code == httpx.codes.OK:
             data = response.json()
         return data, response
 
 
-async def get_teams_autocomplete(ctx: discord.AutocompleteContext):
+async def get_teams_autocomplete(ctx: discord.AutocompleteContext) -> list[str]:
+    """
+    Get teams for autocomplete.
+
+    Args:
+    ----
+        ctx (discord.AutocompleteContext): Autocomplete context.
+
+    Returns:
+    -------
+        list[str]: List of teams.
+
+    """
     try:
         if "shuffle_teams" in ctx.options:
             shuffle_teams = ctx.options["shuffle_teams"]
@@ -265,26 +325,136 @@ async def pick_map(data: CreatePickMap) -> tuple[Match, httpx.Response]:
 
 
 async def recreate_match(match_id: str) -> tuple[Match, httpx.Response]:
+    """
+    Recreate match.
+
+    Args:
+    ----
+        match_id (str): The match id.
+
+    Returns:
+    -------
+        tuple[Match, httpx.Response]: The match and the response.
+
+    """
     async with httpx.AsyncClient(base_url=API_URL, headers=headers) as client:
         response = await client.post(
             f"{MATCHES_ENDPOINT}{match_id}/recreate/",
         )
         response.raise_for_status()
         data = None
-        if response.status_code == 201:
+        if response.status_code == httpx.codes.CREATED:
             data = response.json()
             data = Match(**data)
         return data, response
 
 
 async def shuffle_teams(match_id: str) -> tuple[Match, httpx.Response]:
+    """
+    Shuffle teams.
+
+    Args:
+    ----
+        match_id (str): The match id.
+
+    Returns:
+    -------
+        tuple[Match, httpx.Response]: The match and the response.
+
+    """
     async with httpx.AsyncClient(base_url=API_URL, headers=headers) as client:
         response = await client.post(
             f"{MATCHES_ENDPOINT}{match_id}/shuffle_teams/",
         )
         response.raise_for_status()
         data = None
-        if response.status_code == 201:
+        if response.status_code == httpx.codes.CREATED:
+            data = response.json()
+            data = Match(**data)
+
+        return data, response
+
+
+async def update_match_message_id(
+    match_id: int, message_id: int
+) -> tuple[Match, httpx.Response]:
+    """
+    Update match message id.
+
+    Args:
+    ----
+        match_id (int): Match ID.
+        message_id (int): Message ID.
+
+    """
+    async with httpx.AsyncClient(base_url=API_URL, headers=headers) as client:
+        response = await client.put(
+            f"{MATCHES_ENDPOINT}{match_id}/",
+            json={"message_id": message_id},
+        )
+        response.raise_for_status()
+        data = None
+        if response.status_code == httpx.codes.OK:
+            data = response.json()
+            data = Match(**data)
+
+        return data, response
+
+
+async def update_match_author_id(
+    match_id: int, author_id: int
+) -> tuple[Match, httpx.Response]:
+    """
+    Update match author id.
+
+    Args:
+    ----
+        match_id (int): Match ID.
+        author_id (int): Author ID.
+
+    Returns:
+    -------
+        tuple[Match, httpx.Response]: The match and the response.
+
+    """
+    async with httpx.AsyncClient(base_url=API_URL, headers=headers) as client:
+        response = await client.put(
+            f"{MATCHES_ENDPOINT}{match_id}/",
+            json={"author_id": author_id},
+        )
+        response.raise_for_status()
+        data = None
+        if response.status_code == httpx.codes.OK:
+            data = response.json()
+            data = Match(**data)
+
+        return data, response
+
+
+async def join_match(
+    match_id: int, discord_user_id: int
+) -> tuple[Match, httpx.Response]:
+    """
+    Join player to match.
+
+    Args:
+    ----
+        match_id (int): Match ID.
+        discord_user_id (int): Discord user ID.
+
+    Returns:
+    -------
+        tuple[Match, httpx.Response]: The match and the response.
+
+    """
+    async with httpx.AsyncClient(base_url=API_URL, headers=headers) as client:
+        response = await client.post(
+            f"{MATCHES_ENDPOINT}{match_id}/join/",
+            json={"discord_user_id": discord_user_id},
+        )
+        response.raise_for_status()
+        data = None
+        if response.status_code == httpx.codes.OK:
             data = response.json()
             data = Match(**data)
 

@@ -167,7 +167,7 @@ def check_is_user_leader(user_id: int, team1: dict[str], team2: dict[str]) -> bo
     return True
 
 
-def check_is_user_can_pick(user_id: int, map_picks: list[dict], testing: bool) -> bool:
+def check_is_user_can_pick(user_id: int, map_picks: list[dict], testing: bool) -> bool:  # noqa: FBT001
     """
     Check if user can pick map.
 
@@ -175,6 +175,8 @@ def check_is_user_can_pick(user_id: int, map_picks: list[dict], testing: bool) -
     ----
         user_id (int): User id.
         map_picks (list[dict]): List of map picks.
+        testing (bool): Testing mode.
+
 
     Returns:
     -------

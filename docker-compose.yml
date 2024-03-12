@@ -7,7 +7,6 @@ services:
       - ./:/app
     networks:
       - cs2-battle-bot-network
-    restart: always
 
 networks:
   cs2-battle-bot-network:

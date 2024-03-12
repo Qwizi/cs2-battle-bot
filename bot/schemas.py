@@ -1,6 +1,6 @@
-from __future__ import annotations
+"""Bot schemas."""
 
-from typing import Optional
+from __future__ import annotations
 
 import discord
 from pydantic import BaseModel
@@ -31,12 +31,12 @@ class CreateMatch(BaseModel):
     """Create match serializer."""
 
     discord_users_ids: list[int]
-    team1_id: Optional[str] = None
-    team2_id: Optional[str] = None
+    team1_id: str | None = None
+    team2_id: str | None = None
     shuffle_players: bool = True
     match_type: str
     clinch_series: bool = False
-    map_sides: Optional[list[str]] = None
+    map_sides: list[str] | None = None
     cvars: dict
 
 
@@ -111,8 +111,8 @@ class MapManMany(BaseModel):
     """Map ban many serializer."""
 
     count: int
-    next: Optional[str] = None
-    previous: Optional[str] = None
+    next: str | None = None
+    previous: str | None = None
     results: list[MapBan]
 
 
@@ -129,13 +129,16 @@ class Match(BaseModel):
     """Match serializer."""
 
     id: int
+    status: str
     team1: Team
     team2: Team
     type: str
-    winner_team: Optional[Team] = None
+    winner_team: Team | None = None
     maps: list[Map]
     map_bans: list[MapBan]
     map_picks: list[MapPick]
+    message_id: int | None = None
+    author_id: int | None = None
     created_at: str
     updated_at: str
 
@@ -225,7 +228,7 @@ class Match(BaseModel):
         """
         return [map_.tag for map_ in self.maps]
 
-    def create_match_embed(self, author_id: int) -> discord.Embed:
+    def create_match_embed(self) -> discord.Embed:
         """
         Create match embed.
 
@@ -250,11 +253,19 @@ class Match(BaseModel):
             (self.team1.name, team1_mentioned_leader, team1_mentioned_players),
             (self.team2.name, team2_mentioned_leader, team2_mentioned_players),
         ]
+        description = f"Mecz został utworzony.\n \n ID: meczu: {self.id} \n \n Typ meczu: {self.type}"
         embed = discord.Embed(
             title="Mecz utworzony!",
-            description="Mecz został utworzony.",
+            description=description,
             color=discord.Colour.blurple(),
         )
+        statuses = {
+            "CREATED": "Banowanie Map",
+            "STARTED": "Oczekiwanie na rozpoczęcie",
+            "LIVE": "Mecz trwa",
+            "FINISHED": "Mecz zakończony",
+        }
+        embed.add_field(name="Status", value=statuses[self.status], inline=False)
 
         for team in teams:
             team_name, team_leader, team_players = team
@@ -268,7 +279,7 @@ class Match(BaseModel):
                 value=team_leader,
                 inline=False,
             )
-        embed.set_footer(text=author_id)
+        embed.set_footer(text=self.author_id)
         return embed
 
 
