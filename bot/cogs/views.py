@@ -6,6 +6,7 @@ from abc import ABC, abstractmethod
 
 import discord
 import httpx
+from discord.ui.item import Item  # noqa: TCH002
 
 from bot import logger
 from bot.api import (
@@ -510,6 +511,37 @@ class MapPickView(MapView):
 
 class LaunchMatchView(discord.ui.View):
     """Launch match view."""
+
+    def __init__(
+        self,
+        *items: Item,
+        timeout: float | None = 180,
+        disable_on_timeout: bool = False,
+    ) -> None:
+        """
+        Launch match view.
+
+        Args:
+        ----
+            items (Item): Items.
+            timeout (float, optional): Timeout. Defaults to 180.
+            disable_on_timeout (bool, optional): Disable on timeout. Defaults to False.
+
+        Returns:
+        -------
+            None
+
+        """
+        super().__init__(*items, timeout=timeout, disable_on_timeout=disable_on_timeout)
+        join_btn = discord.ui.Button(
+            style=discord.ButtonStyle.secondary,
+            label="Dolacz do serwera",
+            emoji="🎮",
+            url="http://localhost:8002/accounts/join/"
+            if settings.TESTING
+            else f"{settings.API_URL}/accounts/join/",
+        )
+        self.add_item(join_btn)
 
     @discord.ui.button(label="Start!", style=discord.ButtonStyle.primary, emoji="🚀")
     async def start_match_button_callback(
