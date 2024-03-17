@@ -1,0 +1,25 @@
+{
+    "strings": {
+        "connect_account": "Connect Account",
+        "chose_map_to_ban": "Chose map to ban",
+        "chose_map_to_pick": "Chose map to pick",
+        "user_is_banning": "{} is banning a map",
+        "user_is_picking": "{} is picking a map",
+        "user_ban_map": "{} banned {}",
+        "user_pick_map": "{} picked {}",
+        "user_joined_match": "{} joined to the match",
+        "shuffle_teams": "Shuffle Teams",
+        "start_match": "Start Match",
+        "join_to_match": "Join to Match",
+        "recreate_match": "Recreate Match",
+        "connect_to_server": "Connect to Server",
+        "success_match_loaded": "Match loaded successfully.",
+        "embed_match_title": "Match was created.",
+        "embed_match_desc": "Match was created.\n \n MATCH ID: {} \n \n TYPE: {}",
+        "error_user_is_not_in_voice_channel": "You are not in a voice channel.",
+        "error_min_members_count": "You need at least {} members in the voice channel to play this game.",
+        "error_user_is_not_in_match": "You are not in a match.",
+        "error_user_is_not_leader": "Only leader can do this.",
+        "error_user_is_no_author_of_match": "You are not the author of this match."
+    }
+}

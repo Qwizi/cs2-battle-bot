@@ -23,6 +23,7 @@ from bot.api import (
 from bot.cogs.utils import (
     update_match_embed_with_maps,
 )
+from bot.i18n import _
 from bot.schemas import CreateBanMap, CreatePickMap, Match
 from bot.settings import settings
 
@@ -48,19 +49,46 @@ class MapView(ABC, discord.ui.View):
         """
         super().__init__()
         self.select = discord.ui.Select(
-            placeholder=title if title else "Wybierz mape do zbanowania",
+            placeholder=title if title else _("chose_map_to_ban"),
             options=options,
         )
         self.select.callback = self.map_select_callback
         self.add_item(self.select)
         self.match = match
 
-    @discord.ui.button(
-        label="Przelosuj druzyny", style=discord.ButtonStyle.secondary, emoji="🔄"
-    )
+        self.create_buttons()
+
+    def create_buttons(self) -> None:
+        """
+        Create buttons.
+
+        Args:
+        ----
+            self (MapView): MapView object.
+
+        Returns:
+        -------
+            None
+
+        """
+        self.shuffle_button = discord.ui.Button(
+            label=_("shuffle_teams"),
+            style=discord.ButtonStyle.secondary,
+            emoji="🔄",
+        )
+        self.shuffle_button.callback = self.shuffle_teams_button_callback
+        self.add_item(self.shuffle_button)
+
+        self.player_join_match_button = discord.ui.Button(
+            label=_("join_to_match"),
+            style=discord.ButtonStyle.secondary,
+            emoji="🎮",
+        )
+        self.player_join_match_button.callback = self.player_join_match_button_callback
+        self.add_item(self.player_join_match_button)
+
     async def shuffle_teams_button_callback(
         self,
-        button: discord.ui.Button,
         interaction: discord.Interaction,
     ) -> None:
         """
@@ -80,11 +108,11 @@ class MapView(ABC, discord.ui.View):
         await interaction.response.defer()
         if interaction.user.id != int(interaction.message.embeds[0].footer.text):
             await interaction.followup.send(
-                "Tylko autor komendy moze wykonac ta akcje", ephemeral=True
+                _("error_user_is_no_author_of_match"), ephemeral=True
             )
             return
         try:
-            updated_match, _ = await shuffle_teams(self.match.id)
+            updated_match, _response = await shuffle_teams(self.match.id)
 
         except httpx.HTTPError as e:
             print(e)
@@ -102,9 +130,8 @@ class MapView(ABC, discord.ui.View):
         )
         await interaction.edit(embed=updated_match_embed, view=map_select_view)
 
-    @discord.ui.button(label="Dolacz do meczu", style=discord.ButtonStyle.secondary)
     async def player_join_match_button_callback(
-        self, button: discord.ui.Button, interaction: discord.Interaction
+        self, interaction: discord.Interaction
     ) -> None:
         """
         Player join match button callback.
@@ -122,13 +149,13 @@ class MapView(ABC, discord.ui.View):
         """
         await interaction.response.defer()
         try:
-            current_match, _ = await get_curent_match()
-            updated_match, _ = await join_match(
+            current_match, _response = await get_curent_match()
+            updated_match, _response2 = await join_match(
                 current_match.matchid, interaction.user.id
             )
 
             await interaction.followup.send(
-                f"{interaction.user.mention} dolaczyl do meczu"
+                _("user_joined_match", interaction.user.mention)
             )
             updated_match_embed = updated_match.create_match_embed()
             await interaction.edit(embed=updated_match_embed)
@@ -179,12 +206,12 @@ class MapBanView(MapView):
             map_tag = interaction.data["values"][0]
             if not self.match.check_user_is_in_teams(interaction.user.id):
                 await interaction.followup.send(
-                    "Nie jestes czlonkiem zadnej z druzyn", ephemeral=True
+                    _("error_user_is_not_in_match"), ephemeral=True
                 )
                 return
             if not self.match.check_user_is_leader_in_teams(interaction.user.id):
                 await interaction.followup.send(
-                    "Tylko lider moze banowac mape", ephemeral=True
+                    _("error_user_is_not_leader"), ephemeral=True
                 )
                 return
             match match.type:
@@ -224,7 +251,7 @@ class MapBanView(MapView):
 
         """
         team_leaders = match.get_teams_leaders()
-        map_bans, _ = await get_match_map_bans(match.id)
+        map_bans, _response = await get_match_map_bans(match.id)
 
         # Determine the current banning team and leader
         if (
@@ -244,7 +271,7 @@ class MapBanView(MapView):
             banning_team_leader = team_leaders[0]
 
         # Perform map ban actions
-        updated_match, _ = await ban_map(
+        updated_match, _response = await ban_map(
             data=CreateBanMap(
                 match_id=match.id,
                 team_id=match.team1.id
@@ -254,7 +281,7 @@ class MapBanView(MapView):
             )
         )
         await interaction.followup.send(
-            f"{banning_team_leader.mention_user()} zbanowal mape {map_tag}"
+            _("user_banned_map", banning_team_leader.mention_user(), map_tag)
         )
 
         maps_left = len(updated_match.maps)
@@ -275,7 +302,12 @@ class MapBanView(MapView):
         else:
             await interaction.message.edit(
                 view=MapBanView(
-                    title=f"Teraz banuje {team_leaders[1 - team_leaders.index(banning_team_leader)].discord_user.username}",
+                    title=_(
+                        "user_is_banning",
+                        team_leaders[
+                            1 - team_leaders.index(banning_team_leader)
+                        ].discord_user.username,
+                    ),
                     options=[
                         discord.SelectOption(label=tag, value=tag)
                         for tag in updated_match.get_maps_tags()
@@ -306,7 +338,7 @@ class MapBanView(MapView):
 
         """
         team_leaders = match.get_teams_leaders()
-        map_bans, _ = await get_match_map_bans(match.id)
+        map_bans, _response = await get_match_map_bans(match.id)
         map_bans_count = map_bans.count
         map_bans_required_to_pick = 2
         maps_left_to_launch = 3
@@ -333,7 +365,7 @@ class MapBanView(MapView):
             team_id = match.team2.id
 
             # Perform map ban actions
-        updated_match, _ = await ban_map(
+        updated_match, _response = await ban_map(
             data=CreateBanMap(
                 match_id=match.id,
                 team_id=team_id
@@ -343,7 +375,7 @@ class MapBanView(MapView):
             )
         )
         await interaction.followup.send(
-            f"{banning_team_leader.mention_user()} zbanowal mape {map_tag}"
+            _("user_ban_map", banning_team_leader.mention_user(), map_tag)
         )
         map_pick_tags = [map_pick.map.tag for map_pick in updated_match.map_picks]
         maps_left = [
@@ -354,7 +386,12 @@ class MapBanView(MapView):
         if map_bans_count == map_bans_required_to_pick:
             await interaction.message.edit(
                 view=MapPickView(
-                    title=f"Teraz wybiera {team_leaders[1 - team_leaders.index(banning_team_leader)].discord_user.username}",
+                    title=_(
+                        "user_is_picking",
+                        team_leaders[
+                            1 - team_leaders.index(banning_team_leader)
+                        ].discord_user.username,
+                    ),
                     options=[
                         discord.SelectOption(label=tag, value=tag) for tag in maps_left
                     ],
@@ -364,7 +401,12 @@ class MapBanView(MapView):
         else:
             await interaction.message.edit(
                 view=MapBanView(
-                    title=f"Teraz banuje {team_leaders[1 - team_leaders.index(banning_team_leader)].discord_user.username}",
+                    title=_(
+                        "user_is_banning",
+                        team_leaders[
+                            1 - team_leaders.index(banning_team_leader)
+                        ].discord_user.username,
+                    ),
                     options=[
                         discord.SelectOption(label=tag, value=tag) for tag in maps_left
                     ],
@@ -372,7 +414,7 @@ class MapBanView(MapView):
                 )
             )
         if left_maps == maps_left_to_launch:
-            current_match, _ = await get_curent_match()
+            current_match, _response = await get_curent_match()
             launch_match_view = LaunchMatchView()
             await interaction.message.edit(
                 embed=update_match_embed_with_maps(
@@ -407,12 +449,12 @@ class MapPickView(MapView):
 
             if not self.match.check_user_is_in_teams(interaction.user.id):
                 await interaction.followup.send(
-                    "Nie jestes czlonkiem zadnej z druzyn", ephemeral=True
+                    _("error_user_is_not_in_match"), ephemeral=True
                 )
                 return
             if not self.match.check_user_is_leader_in_teams(interaction.user.id):
                 await interaction.followup.send(
-                    "Tylko lider moze banowac mape", ephemeral=True
+                    _("error_user_is_not_leader"), ephemeral=True
                 )
                 return
             await self.map_pick_logic(interaction, self.match, map_tag)
@@ -448,7 +490,7 @@ class MapPickView(MapView):
 
         """
         team_leaders = match.get_teams_leaders()
-        map_picks, _ = await get_match_map_picks(match.id)
+        map_picks, _response = await get_match_map_picks(match.id)
         # Determine the current banning team and leader
         if (
             not settings.TESTING
@@ -470,7 +512,7 @@ class MapPickView(MapView):
             team_id = match.team1.id
         else:
             team_id = match.team2.id
-        updated_match, _ = await pick_map(
+        updated_match, _response = await pick_map(
             data=CreatePickMap(
                 match_id=match.id,
                 team_id=team_id
@@ -480,7 +522,7 @@ class MapPickView(MapView):
             )
         )
         await interaction.followup.send(
-            f"{banning_team_leader.mention_user()} wybral mape {map_tag}"
+            _("user_pick_map", banning_team_leader.mention_user(), map_tag)
         )
         map_pick_tags = [map_pick.map.tag for map_pick in updated_match.map_picks]
         maps_left = [
@@ -490,7 +532,12 @@ class MapPickView(MapView):
         if map_picks_count == 2:  # noqa: PLR2004
             await interaction.message.edit(
                 view=MapBanView(
-                    title=f"Teraz banuje {team_leaders[1 - team_leaders.index(banning_team_leader)].discord_user.username}",
+                    title=_(
+                        "user_is_banning",
+                        team_leaders[
+                            1 - team_leaders.index(banning_team_leader)
+                        ].discord_user.username,
+                    ),
                     options=[
                         discord.SelectOption(label=tag, value=tag) for tag in maps_left
                     ],
@@ -500,7 +547,12 @@ class MapPickView(MapView):
         else:
             await interaction.message.edit(
                 view=MapPickView(
-                    title=f"Teraz wybiera {team_leaders[1 - team_leaders.index(banning_team_leader)].discord_user.username}",
+                    title=_(
+                        "user_is_picking",
+                        team_leaders[
+                            1 - team_leaders.index(banning_team_leader)
+                        ].discord_user.username,
+                    ),
                     options=[
                         discord.SelectOption(label=tag, value=tag) for tag in maps_left
                     ],
@@ -564,18 +616,17 @@ class LaunchMatchView(discord.ui.View):
         await interaction.response.defer()
         if interaction.user.id != int(interaction.message.embeds[0].footer.text):
             await interaction.followup.send(
-                "Tylko autor komendy moze wykonac ta akcje", ephemeral=True
+                _("error_user_is_no_author_of_match"), ephemeral=True
             )
             return
         try:
-            match, _ = await load_match()
+            match, _response = await load_match()
 
             message_id = interaction.message.id
             logger.logger.debug(f"Message id {message_id}")
             logger.logger.debug(
                 f"Match {match.id} started by user {interaction.user.id}"
             )
-            await interaction.followup.send("Pomyślnie załadowano mecz!")
         except httpx.HTTPError as e:
             logger.logger.debug(f"Error during match load: {e!r}")
             if e.response and e.response.status_code == httpx.codes.BAD_REQUEST:
@@ -587,7 +638,7 @@ class LaunchMatchView(discord.ui.View):
                 "Failed to start match", ephemeral=True
             )
         else:
-            await interaction.followup.send("Pomyślnie załadowano mecz!")
+            await interaction.followup.send(_("success_match_loaded"))
 
     @discord.ui.button(label="Recreate", style=discord.ButtonStyle.danger, emoji="🔄")
     async def recreate_match_button_callback(
@@ -610,12 +661,12 @@ class LaunchMatchView(discord.ui.View):
         await interaction.response.defer()
         if interaction.user.id != int(interaction.message.embeds[0].footer.text):
             await interaction.followup.send(
-                "Tylko autor komendy moze wykonac ta akcje", ephemeral=True
+                _("error_user_is_no_author_of_match"), ephemeral=True
             )
             return
         try:
-            current_match, _ = await get_curent_match()
-            match, _ = await recreate_match(current_match.matchid)
+            current_match, _response = await get_curent_match()
+            match, _response2 = await recreate_match(current_match.matchid)
             map_select_options = [
                 discord.SelectOption(label=tag, value=tag)
                 for tag in match.get_maps_tags()

@@ -5,6 +5,8 @@ from __future__ import annotations
 import discord
 from pydantic import BaseModel
 
+from bot.i18n import _
+
 
 class CurrentMatchTeam(BaseModel):
     """Schema for the current match team."""
@@ -253,19 +255,11 @@ class Match(BaseModel):
             (self.team1.name, team1_mentioned_leader, team1_mentioned_players),
             (self.team2.name, team2_mentioned_leader, team2_mentioned_players),
         ]
-        description = f"Mecz został utworzony.\n \n ID: meczu: {self.id} \n \n Typ meczu: {self.type}"
         embed = discord.Embed(
-            title="Mecz utworzony!",
-            description=description,
+            title=_("embed_match_title"),
+            description=_("embed_match_desc", self.id, self.type),
             color=discord.Colour.blurple(),
         )
-        statuses = {
-            "CREATED": "Banowanie Map",
-            "STARTED": "Oczekiwanie na rozpoczęcie",
-            "LIVE": "Mecz trwa",
-            "FINISHED": "Mecz zakończony",
-        }
-        embed.add_field(name="Status", value=statuses[self.status], inline=False)
 
         for team in teams:
             team_name, team_leader, team_players = team

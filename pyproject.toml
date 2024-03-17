@@ -18,6 +18,7 @@ pydantic-settings = "^2.2.1"
 pydantic = "^2.6.3"
 taskipy = "^1.12.2"
 sentry-sdk = "^1.41.0"
+pycord-i18n = "^1.2.1"
 
 
 [tool.poetry.group.dev.dependencies]

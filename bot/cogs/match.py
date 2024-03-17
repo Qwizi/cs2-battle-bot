@@ -24,6 +24,7 @@ from bot.events.events import (
     OnSeriesStartEvent,
 )
 from bot.events.listener import EventListener
+from bot.i18n import _
 from bot.logger import logger
 from bot.schemas import CreateMatch
 from bot.settings import settings
@@ -45,7 +46,7 @@ class MatchCog(commands.Cog):
     )
 
     @match.command(guild_ids=[settings.GUILD_ID])
-    async def connect(self, ctx: discord.ApplicationContext) -> None:
+    async def link(self, ctx: discord.ApplicationContext) -> None:
         """
         Get connect account link command.
 
@@ -59,7 +60,10 @@ class MatchCog(commands.Cog):
 
         """
         connect_account_link = get_connect_account_link()
-        await ctx.respond(f"[Połącz konto]({connect_account_link})", ephemeral=True)
+        await ctx.respond(
+            f"[{_('connect_account')}]({connect_account_link})",
+            ephemeral=True,
+        )
 
     @match.command(guild_ids=[settings.GUILD_ID])
     async def create(
@@ -92,13 +96,17 @@ class MatchCog(commands.Cog):
         """
         await ctx.defer()
         if ctx.author.voice is None:
-            await ctx.followup.send("Nie jestes na kanale glosowym.", ephemeral=True)
+            await ctx.followup.send(
+                _("error_user_is_not_in_voice_channel"),
+                ephemeral=True,
+            )
             return
         voice_channel = ctx.author.voice.channel
         members = voice_channel.members
         if settings.TESTING is False and len(members) < settings.MIN_PLAYERS:
             await ctx.followup.send(
-                "Wymange 2 graczy, by rozpoczac mecz", ephemeral=True
+                _("error_min_members_count", settings.MIN_PLAYERS),
+                ephemeral=True,
             )
             return
         await self._create_match(ctx, match_type, members)
