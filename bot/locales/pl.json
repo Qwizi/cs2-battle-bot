@@ -1,0 +1,24 @@
+{
+    "strings": {
+        "connect_account": "Połącz konto",
+        "chose_map_to_ban": "Wybierz mapę do zbanowania",
+        "chose_map_to_pick": "Wybierz mapę",
+        "user_is_banning": "{} banuje mape",
+        "user_is_picking": "{} wybiera mape",
+        "user_ban_map": "{} zbanowal {}",
+        "user_pick_map": "{} wybral {}",
+        "shuffle_teams": "Przelosuj druzyny",
+        "start_match": "Startuj mecz",
+        "join_to_match": "Dolacz do meczu",
+        "recreate_match": "Stworz nowy mecz",
+        "connect_to_server": "Polacz z serwerem",
+        "success_match_loaded": "Mecz zostal pomyslnie zaladowany.",
+        "embed_match_title": "Mecz został utworzony.",
+        "embed_match_desc": "Mecz został utworzony.\n \n ID MECZU: {} \n \n TYP MECZU: {}",
+        "error_user_is_not_in_voice_channel": "Nie jestes na kanale glosowym.",
+        "error_min_members_count": "Potrzebujesz przynajmniej {} osób na kanale glosowym, aby utworzyc mecz.",
+        "error_user_is_not_in_match": "Nie jestes w meczu.",
+        "error_user_is_not_leader": "Nie jestes liderem druzyny.",
+        "error_user_is_no_author_of_match": "Nie jestes autorem meczu."
+    }
+}

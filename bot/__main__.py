@@ -3,16 +3,14 @@
 import discord
 import redis
 import sentry_sdk
-from dotenv import load_dotenv
 from redis import ConnectionError, TimeoutError
 
+from bot.bot import bot
 from bot.cogs.match import MatchCog
+from bot.i18n import i18n
 from bot.logger import logger
 from bot.settings import settings
 
-load_dotenv()
-
-bot = discord.Bot(intents=discord.Intents.all())
 sentry_sdk.init(
     dsn=settings.SENTRY_DSN,
     environment="production" if not settings.TESTING else "development",
@@ -63,4 +61,5 @@ except (ConnectionError, TimeoutError) as e:
     logger.error(f"Redis connection error: {e}")
     # Handle the error appropriately, e.g., retrying or logging
     sentry_sdk.capture_exception(e)
+i18n.localize_commands()
 bot.run(settings.TOKEN)
