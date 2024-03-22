@@ -1,0 +1,58 @@
+site_name: "CS2 Battle Bot"
+site_description: "CS2 Battle Bot."
+site_url: "https://cs2-battle-bot.readthedocs.io/en/latest/"
+repo_url: "https://github.com/Qwizi/cs2-battle-bot"
+repo_name: "Qwizi/cs2-battle-bot"w"
+
+nav:
+- "Main": "index.md"
+
+theme:
+  name: "material"
+  features:
+  - "content.code.annotate"
+  - "navigation.top"
+  - "navigation.tracking"
+  palette:
+  - media: "(prefers-color-scheme)"
+    toggle:
+      icon: "material/brightness-auto"
+      name: "Switch to light mode"
+  - media: "(prefers-color-scheme: light)"
+    scheme: "default"
+    primary: "teal"
+    accent: "purple"
+    toggle:
+      icon: "material/weather-sunny"
+      name: "Switch to dark mode"
+  - media: "(prefers-color-scheme: dark)"
+    scheme: "slate"
+    primary: "black"
+    accent: "lime"
+    toggle:
+      icon: "material/weather-night"
+      name: "Switch to system preference"
+
+extra_css:
+- "css/mkdocstrings.css"
+
+markdown_extensions:
+- "pymdownx.highlight":
+    use_pygments: true
+- "pymdownx.superfences":
+    custom_fences:
+      - name: "mermaid"
+        class: "mermaid"
+        format: !!python/name:pymdownx.superfences.fence_code_format
+- "toc":
+    permalink: true
+- "admonition"
+- "pymdownx.emoji"
+- "pymdownx.magiclink"
+- "footnotes"
+
+plugins:
+- "autorefs"
+- "search"
+- "markdown-exec"
+- "mkdocstrings":

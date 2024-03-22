@@ -54,6 +54,8 @@ services:
       - RCON_HOST=
       - RCON_PORT=
       - RCON_PASSWORD=
+      - SERVER_PORT=27015
+      - SERVER_PASSWORD=changeme
       - API_KEY=
     restart: always
     depends_on:
@@ -102,15 +104,11 @@ services:
       - REDIS_PORT=6379
       - REDIS_DB=0
       - REDIS_PASSWORD=
-      ## SENTRY DSN
-      - SENTRY_DSN=
       ## Your guild id
       - GUILD_ID=
       - LOBBY_CHANNEL_ID=
       - TEAM1_CHANNEL_ID=
       - TEAM2_CHANNEL_ID=
-      - TEAM1_ROLE_ID=
-      - TEAM2_ROLE_ID=
     networks:
       -  cs2-battle-bot-network
 networks:
@@ -149,3 +147,10 @@ Run fixture with maps
 ```shell
 docker compose exec app python manage.py loaddata maps
 ```
+
+## TODO
+- [] Uploading demo files to backend server and after match finished attaching this demo file to match embed files
+- [] Rank system (Premier ranks / Matchmaking ranks)
+- [] Teams managment (Create teams, assing player to teams, create matches with this teams)
+- [] 2 options to launch matches (RCON COMMAND and json file and give option to manually upload this cfg file to server)
+- [] Support multiple guilds and servers.

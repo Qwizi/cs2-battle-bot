@@ -16,6 +16,7 @@
         "success_match_loaded": "Match loaded successfully.",
         "embed_match_title": "Match was created.",
         "embed_match_desc": "Match was created.\n \n MATCH ID: {} \n \n TYPE: {}",
+        "maps": "Maps",
         "error_user_is_not_in_voice_channel": "You are not in a voice channel.",
         "error_min_members_count": "You need at least {} members in the voice channel to play this game.",
         "error_user_is_not_in_match": "You are not in a match.",

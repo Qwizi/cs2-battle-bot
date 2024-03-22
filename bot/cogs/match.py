@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import discord
 import httpx
-import sentry_sdk
 from discord.ext import commands, tasks
 from pydantic import ValidationError
 from redis.client import PubSub  # noqa: TCH002
@@ -194,20 +193,17 @@ class MatchCog(commands.Cog):
                 "ValidationError: Failed to create match", ephemeral=True
             )
             logger.error(exc.json())
-            sentry_sdk.capture_exception(exc)
 
     async def handle_http_error(
         self, exc: httpx.HTTPError, ctx: discord.ApplicationContext
     ) -> None:
         """Handles HTTP errors gracefully."""
         data = exc.response.json()
-        message = data.get("message")
+        user_id = data.get("user_id")
         logger.error(data)
-        sentry_sdk.capture_exception(exc)
-        if message and "Discord user" in message:
-            user_id = data.get("user_id")
+        if user_id:
             await ctx.followup.send(
-                f"Uzytkownik <@{user_id}> nie jest zarejestrowany w bazie danych"
+                f"User <@{user_id}> does not have a connected account",
             )
         else:
             await ctx.followup.send(

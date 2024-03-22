@@ -15,8 +15,8 @@ from bot.schemas import (
 )
 from bot.settings import settings
 
-API_URL = settings.API_URL
-API_TOKEN = settings.API_TOKEN
+API_URL = settings.HOST_URL
+API_TOKEN = settings.API_KEY
 MATCHES_ENDPOINT = "/api/matches/"
 CURRENT_MATCH_ENDPOINT = MATCHES_ENDPOINT + "current/"
 PLAYERS_ENDPOINT = "/api/players/"

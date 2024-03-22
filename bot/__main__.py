@@ -2,7 +2,6 @@
 
 import discord
 import redis
-import sentry_sdk
 from redis import ConnectionError, TimeoutError
 
 from bot.bot import bot
@@ -10,11 +9,6 @@ from bot.cogs.match import MatchCog
 from bot.i18n import i18n
 from bot.logger import logger
 from bot.settings import settings
-
-sentry_sdk.init(
-    dsn=settings.SENTRY_DSN,
-    environment="production" if not settings.TESTING else "development",
-)
 
 
 @bot.event
@@ -41,7 +35,6 @@ async def on_application_command_error(
 
     """
     logger.error(repr(error))
-    sentry_sdk.capture_exception(error)
     await ctx.respond("An error occurred while processing the command.")
 
 
@@ -60,6 +53,5 @@ try:
 except (ConnectionError, TimeoutError) as e:
     logger.error(f"Redis connection error: {e}")
     # Handle the error appropriately, e.g., retrying or logging
-    sentry_sdk.capture_exception(e)
 i18n.localize_commands()
-bot.run(settings.TOKEN)
+bot.run(settings.DISCORD_BOT_TOKEN)
