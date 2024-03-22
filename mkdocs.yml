@@ -38,20 +38,20 @@ theme:
 extra_css:
 - "css/mkdocstrings.css"
 
-markdown_extensions:
-- "pymdownx.highlight":
-    use_pygments: true
-- "pymdownx.superfences":
-    custom_fences:
-      - name: "mermaid"
-        class: "mermaid"
-        format: !!python/name:pymdownx.superfences.fence_code_format
-- "toc":
-    permalink: true
-- "admonition"
-- "pymdownx.emoji"
-- "pymdownx.magiclink"
-- "footnotes"
+# markdown_extensions:
+# - "pymdownx.highlight":
+#     use_pygments: true
+# - "pymdownx.superfences":
+#     custom_fences:
+#       - name: "mermaid"
+#         class: "mermaid"
+#         format: !!python/name:pymdownx.superfences.fence_code_format
+# - "toc":
+#     permalink: true
+# - "admonition"
+# - "pymdownx.emoji"
+# - "pymdownx.magiclink"
+# - "footnotes"
 
 plugins:
 - "autorefs"
