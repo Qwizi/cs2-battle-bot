@@ -290,15 +290,7 @@ class MapBanView(MapView):
         )
         # Update match view or launch match
         if maps_left == 1:
-            launch_match_view = LaunchMatchView()
-            await interaction.message.edit(
-                embed=update_match_embed_with_maps(
-                    interaction.message.embeds[0],
-                    updated_match.get_maps_tags(),
-                    interaction.user.id,
-                ),
-                view=launch_match_view,
-            )
+            await self.launch_match(updated_match, interaction)
         else:
             await interaction.message.edit(
                 view=MapBanView(
@@ -420,10 +412,35 @@ class MapBanView(MapView):
                 embed=update_match_embed_with_maps(
                     interaction.message.embeds[0],
                     current_match.maplist,
-                    interaction.user.id,
                 ),
                 view=launch_match_view,
             )
+
+    async def launch_match(
+        self, match: Match, interaction: discord.Interaction
+    ) -> None:
+        """
+        Launch match.
+
+        Args:
+        ----
+            self (MapBanView): MapBanView object.
+            match (Match): Match object.
+            interaction (discord.Interaction): Interaction object.
+
+        Returns:
+        -------
+            None
+
+        """
+        launch_match_view = LaunchMatchView()
+        await interaction.message.edit(
+            embed=update_match_embed_with_maps(
+                interaction.message.embeds[0],
+                match.get_maps_tags(),
+            ),
+            view=launch_match_view,
+        )
 
 
 class MapPickView(MapView):

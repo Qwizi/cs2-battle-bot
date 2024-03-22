@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import io
+
 import discord
 from pydantic import BaseModel
 
@@ -275,6 +277,98 @@ class Match(BaseModel):
             )
         embed.set_footer(text=self.author_id)
         return embed
+
+    def get_config(self) -> dict:
+        """
+        Get match config.
+
+        Args:
+        ----
+            None
+
+        Returns:
+        -------
+            dict: Match config.
+
+        """
+        return {
+            "match_id": self.id,
+            "team1": self.team1.id,
+            "team2": self.team2.id,
+            "maps": self.get_maps_tags(),
+            "map_sides": self.map_sides,
+            "clincher": self.clinch_series,
+            "players_per_team": len(self.team1.players),
+            "cvars": self.cvars,
+        }
+
+    def get_config_file(self) -> discord.File:
+        """
+        Get config file.
+
+        Args:
+        ----
+            None
+
+        Returns:
+        -------
+            discord.File: Config file.
+
+        """
+        json_data = self.model_dump_json()
+        return discord.File(
+            fp=io.StringIO(json_data),
+            filename="matchzy.cfg",
+        )
+
+    def launch_match_embed(self, old_embed: discord.Embed) -> discord.Embed:
+        """Launch match embed."""
+        new_embed = discord.Embed.from_dict(old_embed.to_dict())
+        maps_to_play = ", ".join(self.get_maps_tags())
+        new_embed.add_field(
+            name=_("maps"),
+            value=maps_to_play,
+            inline=False,
+        )
+        return new_embed
+
+    def update_embed_maps(
+        self, old_embed: discord.Embed, maps: list[str]
+    ) -> discord.Embed:
+        """
+        Update match embed with maps.
+
+        Args:
+        ----
+            old_embed (discord.Embed): Old embed.
+            maps (list[str]): List of maps.
+
+        Returns:
+        -------
+            discord.Embed: Updated embed.
+
+        """
+        new_embed = discord.Embed.from_dict(
+            old_embed.to_dict()
+        )  # Efficiently copy embed data
+
+        maps_text = ", ".join(maps)
+
+        # Check for existing "Map" field using list comprehension
+        existing_map_field = [
+            field for field in new_embed.fields if field.name == "Map"
+        ]
+
+        if existing_map_field:
+            # Update existing "Map" field at its index (likely 0)
+            new_embed.set_field_at(
+                existing_map_field[0].index, name="Map", value=maps_text, inline=False
+            )
+        else:
+            # Add new "Map" field
+            new_embed.add_field(name="Map", value=maps_text, inline=False)
+
+        return new_embed
 
 
 class CreateBanMap(BaseModel):

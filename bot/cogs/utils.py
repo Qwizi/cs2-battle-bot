@@ -304,7 +304,7 @@ def create_match_embed(match: Match, author_id: int) -> discord.Embed:
 
 
 def update_match_embed_with_maps(
-    old_embed: discord.Embed, maps: list[str], author_id: int
+    old_embed: discord.Embed, maps: list[str]
 ) -> discord.Embed:
     """
     Creates a new embed from an existing one, adding a "Map" field with provided maps.
@@ -337,5 +337,17 @@ def update_match_embed_with_maps(
         # Add new "Map" field
         new_embed.add_field(name="Map", value=maps_text, inline=False)
 
-    new_embed.set_footer(text=author_id)
     return new_embed
+
+
+def create_match_config_file(match: Match) -> discord.File:
+    """
+    Create config file.
+
+    Returns
+    -------
+        None
+
+    """
+    config_json = match.model_dump_json()
+    return discord.File(config_json, filename="match_config.json")
