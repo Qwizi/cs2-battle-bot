@@ -55,4 +55,4 @@ plugins:
 - "autorefs"
 - "search"
 - "markdown-exec"
-- "mkdocstrings":
+- "mkdocstrings"
