@@ -48,21 +48,21 @@ markdown_extensions:
           format: !!python/name:pymdownx.superfences.fence_code_format
   - toc:
       permalink: true
-  - "admonition"
-  - "pymdownx.emoji
-  - "pymdownx.magiclink"
-  - "footnotes"
+  - admonition
+  - pymdownx.emoji
+  - pymdownx.magiclink
+  - footnotes
 
 plugins:
-  - "autorefs"
-  - "search"
-  - "markdown-exec"
-  - "mkdocstrings":
-    handlers:
-      python:
-        options:
-          members_order: "source"
-          show_signature_annotations: true
-        paths: ["bot/"]
-        import:
-        - "https://docs.python.org/3/objects.inv"
+  - autorefs
+  - search
+  - markdown-exec
+  - mkdocstrings:
+      handlers:
+        python:
+          options:
+            members_order: "source"
+            show_signature_annotations: true
+          paths: ["bot/"]
+          import:
+          - "https://docs.python.org/3/objects.inv"
