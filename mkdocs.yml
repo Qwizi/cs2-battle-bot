@@ -2,7 +2,7 @@ site_name: "CS2 Battle Bot"
 site_description: "CS2 Battle Bot."
 site_url: "https://cs2-battle-bot.readthedocs.io/en/latest/"
 repo_url: "https://github.com/Qwizi/cs2-battle-bot"
-repo_name: "Qwizi/cs2-battle-bot"w"
+repo_name: "Qwizi/cs2-battle-bot"
 
 nav:
 - "Main": "index.md"
