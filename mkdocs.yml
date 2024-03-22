@@ -3,6 +3,8 @@ site_description: "CS2 Battle Bot."
 site_url: "https://cs2-battle-bot.readthedocs.io/en/latest/"
 repo_url: "https://github.com/Qwizi/cs2-battle-bot"
 repo_name: "Qwizi/cs2-battle-bot"
+watch:
+- "bot"
 
 nav:
 - "Main": "index.md"
@@ -55,4 +57,12 @@ plugins:
 - "autorefs"
 - "search"
 - "markdown-exec"
-- "mkdocstrings"
+- "mkdocstrings":
+    handlers:
+      python:
+        options:
+          members_order: "source"
+          show_signature_annotations: true
+        paths: ["bot/"]
+        import:
+        - "https://docs.python.org/3/objects.inv"
