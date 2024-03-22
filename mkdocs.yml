@@ -39,25 +39,25 @@ extra_css:
 - "css/mkdocstrings.css"
 
 markdown_extensions:
-- "pymdownx.highlight":
-    use_pygments: true
-- "pymdownx.superfences":
-    custom_fences:
-      - name: "mermaid"
-        class: "mermaid"
-        format: !!python/name:pymdownx.superfences.fence_code_format
-- "toc":
-    permalink: true
-- "admonition"
-- "pymdownx.emoji"
-- "pymdownx.magiclink"
-- "footnotes"
+  - pymdownx.highlight:
+      use_pygments: true
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - toc:
+      permalink: true
+  - "admonition"
+  - "pymdownx.emoji
+  - "pymdownx.magiclink"
+  - "footnotes"
 
 plugins:
-- "autorefs"
-- "search"
-- "markdown-exec"
-- "mkdocstrings":
+  - "autorefs"
+  - "search"
+  - "markdown-exec"
+  - "mkdocstrings":
     handlers:
       python:
         options:
