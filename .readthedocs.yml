@@ -13,4 +13,4 @@ build:
       - poetry config virtualenvs.create false
     post_install:
       # Install dependencies
-      - poetry install --with docs
+      - pip install mkdocs-material
