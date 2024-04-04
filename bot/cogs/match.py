@@ -187,7 +187,7 @@ class MatchCog(commands.Cog):
                 f"User {ctx.author.id} created match {created_match.id} of type {match_type} with members {discord_users_ids}. Message id {message.id}"
             )
         except httpx.HTTPError as exc:
-            self.handle_http_error(exc, ctx)
+            await self.handle_http_error(exc, ctx)
         except ValidationError as exc:
             await ctx.followup.send(
                 "ValidationError: Failed to create match", ephemeral=True
