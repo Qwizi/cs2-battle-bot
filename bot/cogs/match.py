@@ -102,7 +102,7 @@ class MatchCog(commands.Cog):
             return
         voice_channel = ctx.author.voice.channel
         members = voice_channel.members
-        if settings.TESTING is False and len(members) < settings.MIN_PLAYERS:
+        if settings.DEBUG is False and len(members) < settings.MIN_PLAYERS:
             await ctx.followup.send(
                 _("error_min_members_count", settings.MIN_PLAYERS),
                 ephemeral=True,
@@ -131,7 +131,7 @@ class MatchCog(commands.Cog):
 
         """
         discord_users_ids = [member.id for member in members]
-        if settings.TESTING:
+        if settings.DEBUG:
             discord_users_ids = [
                 ctx.author.id,
                 859429903170273321,
