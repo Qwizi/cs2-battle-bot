@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="42e0390c-c658-4c41-8101-b95b0acb6768" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/.idea/codeStyles/codeStyleConfig.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/cs2-battle-bot.iml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/profiles_settings.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/material_theme_project_new.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/ruff.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/bot/temp/.gitkeep" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Dockerfile" beforeDir="false" afterPath="$PROJECT_DIR$/Dockerfile" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/bot/__main__.py" beforeDir="false" afterPath="$PROJECT_DIR$/bot/__main__.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/bot/api.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/bot/cogs/match.py" beforeDir="false" afterPath="$PROJECT_DIR$/bot/cogs/match.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/bot/cogs/utils.py" beforeDir="false" afterPath="$PROJECT_DIR$/bot/cogs/utils.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/bot/cogs/views.py" beforeDir="false" afterPath="$PROJECT_DIR$/bot/cogs/views.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/bot/events/events.py" beforeDir="false" afterPath="$PROJECT_DIR$/bot/events/events.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/bot/events/listener.py" beforeDir="false" afterPath="$PROJECT_DIR$/bot/events/listener.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/bot/locales/en.json" beforeDir="false" afterPath="$PROJECT_DIR$/bot/locales/en.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/bot/locales/pl.json" beforeDir="false" afterPath="$PROJECT_DIR$/bot/locales/pl.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/bot/settings.py" beforeDir="false" afterPath="$PROJECT_DIR$/bot/settings.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/docker-compose.yml" beforeDir="false" afterPath="$PROJECT_DIR$/docker-compose.yml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/poetry.lock" beforeDir="false" afterPath="$PROJECT_DIR$/poetry.lock" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pyproject.toml" beforeDir="false" afterPath="$PROJECT_DIR$/pyproject.toml" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="GitHubPullRequestSearchHistory">{
+  &quot;lastFilter&quot;: {
+    &quot;state&quot;: &quot;OPEN&quot;,
+    &quot;assignee&quot;: &quot;Qwizi&quot;
+  }
+}</component>
+  <component name="GithubPullRequestsUISettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;url&quot;: &quot;git@github.com:Qwizi/cs2-battle-bot.git&quot;,
+    &quot;accountId&quot;: &quot;0d334790-cc6d-4536-b904-866001819528&quot;
+  }
+}</component>
+  <component name="HighlightingSettingsPerFile">
+    <setting file="file://$USER_HOME$/.cache/pypoetry/virtualenvs/cs2-battle-bot-TUtCB5th-py3.11/lib/python3.11/site-packages/cs2_battle_bot_api_client/api/matches/matches_retrieve.py" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$USER_HOME$/.cache/pypoetry/virtualenvs/cs2-battle-bot-TUtCB5th-py3.11/lib/python3.11/site-packages/cs2_battle_bot_api_client/models/match.py" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$USER_HOME$/.cache/pypoetry/virtualenvs/cs2-battle-bot-TUtCB5th-py3.11/lib/python3.11/site-packages/cs2_battle_bot_api_client/models/match_config.py" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$USER_HOME$/.cache/pypoetry/virtualenvs/cs2-battle-bot-TUtCB5th-py3.11/lib/python3.11/site-packages/cs2_battle_bot_api_client/models/match_map_selected.py" root0="FORCE_HIGHLIGHTING" />
+  </component>
+  <component name="MarkdownSettingsMigration">
+    <option name="stateVersion" value="1" />
+  </component>
+  <component name="ProblemsViewState">
+    <option name="selectedTabId" value="CurrentFile" />
+  </component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 2
+}</component>
+  <component name="ProjectId" id="2edz9lhbJQOWBpLN1kppQNSHOTY" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "RunOnceActivity.OpenProjectViewOnStart": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "SHARE_PROJECT_CONFIGURATION_FILES": "true",
+    "git-widget-placeholder": "new-feature",
+    "last_opened_file_path": "/home/qwizi/Projects/cs2-battle-bot-client",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "settings.editor.selected.configurable": "com.koxudaxi.ruff.RuffConfigurable",
+    "vue.rearranger.settings.migration": "true"
+  }
+}]]></component>
+  <component name="SharedIndexes">
+    <attachedChunks>
+      <set>
+        <option value="bundled-js-predefined-1d06a55b98c1-74d2a5396914-JavaScript-PY-241.14494.241" />
+        <option value="bundled-python-sdk-0509580d9d50-28c9f5db9ffe-com.jetbrains.pycharm.pro.sharedIndexes.bundled-PY-241.14494.241" />
+      </set>
+    </attachedChunks>
+  </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="42e0390c-c658-4c41-8101-b95b0acb6768" name="Changes" comment="" />
+      <created>1712249093359</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1712249093359</updated>
+      <workItem from="1712249094407" duration="2496000" />
+      <workItem from="1712251753600" duration="2000" />
+      <workItem from="1712251958384" duration="1627000" />
+      <workItem from="1712320930142" duration="9000" />
+      <workItem from="1712694011159" duration="89000" />
+      <workItem from="1712694107593" duration="634000" />
+      <workItem from="1713365590026" duration="1761000" />
+      <workItem from="1713367358864" duration="5265000" />
+      <workItem from="1713429865602" duration="4249000" />
+      <workItem from="1713435463627" duration="3858000" />
+      <workItem from="1713447648019" duration="41000" />
+      <workItem from="1713448402288" duration="76000" />
+      <workItem from="1713448686378" duration="4039000" />
+      <workItem from="1713459346320" duration="4858000" />
+      <workItem from="1713527609182" duration="12000" />
+      <workItem from="1713629854648" duration="2631000" />
+      <workItem from="1713637950139" duration="9354000" />
+      <workItem from="1713654408075" duration="2008000" />
+      <workItem from="1713701929277" duration="8000" />
+      <workItem from="1713708629785" duration="892000" />
+      <workItem from="1713710340608" duration="46000" />
+      <workItem from="1713710394367" duration="489000" />
+      <workItem from="1713712404260" duration="2482000" />
+      <workItem from="1713715630975" duration="3155000" />
+      <workItem from="1713721273864" duration="833000" />
+      <workItem from="1713722406497" duration="139000" />
+      <workItem from="1713722600137" duration="1432000" />
+      <workItem from="1713730019197" duration="134000" />
+      <workItem from="1713804475596" duration="480000" />
+      <workItem from="1713805737773" duration="19323000" />
+    </task>
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+</project>

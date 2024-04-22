@@ -2,33 +2,41 @@
 
 from __future__ import annotations
 
-import discord
-import httpx
-from discord.ext import commands, tasks
-from pydantic import ValidationError
-from redis.client import PubSub  # noqa: TCH002
+import json
+from http import HTTPStatus
 
-from bot.api import (
-    create_match,
-    get_connect_account_link,
-    update_match_author_id,
-    update_match_message_id,
+import discord
+from cs2_battle_bot_api_client.api.account_connect_link import (
+    account_connect_link_retrieve,
 )
-from bot.cogs.views import MapBanView
+from cs2_battle_bot_api_client.api.guilds import guilds_retrieve
+from cs2_battle_bot_api_client.api.matches import matches_create, matches_update
+from cs2_battle_bot_api_client.errors import UnexpectedStatus
+from cs2_battle_bot_api_client.models import (
+    AccountConnectLink,
+    CreateMatch,
+    CreateMatchCvars,
+    Match,
+    MatchTypeEnum,
+)
+from cs2_battle_bot_api_client.models.match_update import MatchUpdate
+from cs2_battle_bot_api_client.types import Response
+from discord.commands import option
+from discord.ext import commands, tasks
+from redis.client import PubSub
+
+from bot.cogs.utils import create_match_embed, get_servers_list
+from bot.cogs.views import ConfigureGuildView, LaunchMatchView, MapBanView
 from bot.events.events import (
     OnGoingLiveEvent,
     OnMapResultEvent,
-    OnRoundEndEvent,
     OnSeriesEndEvent,
     OnSeriesStartEvent,
 )
 from bot.events.listener import EventListener
 from bot.i18n import _
 from bot.logger import logger
-from bot.schemas import CreateMatch
-from bot.settings import settings
-
-guild_id = settings.GUILD_ID
+from bot.settings import api_client, settings
 
 
 class MatchCog(commands.Cog):
@@ -44,40 +52,108 @@ class MatchCog(commands.Cog):
         name="match", description="Commands for managing matches"
     )
 
-    @match.command(guild_ids=[settings.GUILD_ID])
+    @match.command()
     async def link(self, ctx: discord.ApplicationContext) -> None:
         """
         Get connect account link command.
 
         Args:
         ----
-            ctx (discord.ApplicationContext): Application context.
+                ctx (discord.ApplicationContext): Application context.
 
         Returns:
         -------
-            None
+                None
 
         """
-        connect_account_link = get_connect_account_link()
+        connect_account_link: AccountConnectLink = (
+            await account_connect_link_retrieve.asyncio(
+                client=api_client,
+            )
+        )
+        link = (
+            connect_account_link.link
+            if not settings.DEBUG
+            else "http://localhost:8002/accounts/discord/"
+        )
         await ctx.respond(
-            f"[{_('connect_account')}]({connect_account_link})",
+            f"[{_('connect_account')}]({link})",
             ephemeral=True,
         )
 
-    @match.command(guild_ids=[settings.GUILD_ID])
+    @match.command()
+    async def configure(self, ctx: discord.ApplicationContext) -> None:
+        """Configure guild command. Select channels for lobby, team1 and team2."""
+        await ctx.defer()
+        guild = await guilds_retrieve.asyncio(
+            client=api_client, guild_id=str(ctx.guild.id)
+        )
+
+        if ctx.author.id != int(guild.owner.player.discord_user.user_id):
+            await ctx.followup.send(_("error_user_is_not_owner"), ephemeral=True)
+            return
+
+        guild_embed = discord.Embed(
+            title=f"Guild configuration for {ctx.guild.name}",
+            description="Select channels for lobby, team1 i team2",
+            color=discord.Color.green(),
+        )
+
+        for name, channel in [
+            ("Lobby", guild.lobby_channel),
+            ("Team 1", guild.team1_channel),
+            ("Team 2", guild.team2_channel),
+        ]:
+            guild_embed.add_field(
+                name=name,
+                value=ctx.guild.get_channel(int(channel)).mention
+                if channel
+                else "Brak",
+                inline=False,
+            )
+
+        await ctx.followup.send(embed=guild_embed, view=ConfigureGuildView(guild=guild))
+
+    @match.command()
+    @option(
+        "match_type",
+        type=str,
+        choices=[
+            discord.OptionChoice(name="BO1", value="BO1"),
+            discord.OptionChoice(name="BO3", value="BO3"),
+        ],
+        default="BO1",
+    )
+    @option(
+        "maplist", type=str, required=False, description="Maplist separated by comma"
+    )
+    @option(
+        "sides",
+        type=str,
+        required=False,
+        description="Sides separated by comma. Valid values: team1_ct, team1_t, team2_ct, team2_t, knife",
+    )
+    @option(
+        "cvars",
+        type=str,
+        required=False,
+        description="Cvars separated by comma. Example: mp_maxrounds=30,mp_startmoney=800",
+    )
+    @option(
+        "server",
+        type=str,
+        autocomplete=discord.utils.basic_autocomplete(get_servers_list),
+        required=False,
+        description="Public available server",
+    )
     async def create(
         self,
         ctx: discord.ApplicationContext,
-        match_type: str = discord.Option(
-            str,
-            choices=[
-                discord.OptionChoice(name="BO1", value="BO1"),
-                discord.OptionChoice(name="BO3", value="BO3"),
-                discord.OptionChoice(name="BO5", value="BO5"),
-            ],
-            default="BO3",
-            name="match_type",
-        ),
+        match_type: str,
+        maplist: str,
+        sides: str,
+        cvars: str,
+        server: str,
     ) -> None:
         """
         Create match command.
@@ -85,131 +161,132 @@ class MatchCog(commands.Cog):
         Args:
         ----
             ctx (discord.ApplicationContext): Application context.
-            match_type (discord.Option): Match type.
-
-
-        Returns:
-        -------
-            None
+            match_type (str): Match type.
+            maplist (str): Maplist.
+            sides (str): Sides.
+            cvars (str): Cvars.
+            server (str): Server.
 
         """
         await ctx.defer()
-        if ctx.author.voice is None:
+        if not ctx.author.voice:
             await ctx.followup.send(
-                _("error_user_is_not_in_voice_channel"),
-                ephemeral=True,
+                _("error_user_is_not_in_voice_channel"), ephemeral=True
             )
             return
-        voice_channel = ctx.author.voice.channel
-        members = voice_channel.members
-        if settings.TESTING is False and len(members) < settings.MIN_PLAYERS:
+
+        members = ctx.author.voice.channel.members
+        if not settings.DEBUG and len(members) < settings.MIN_PLAYERS:
             await ctx.followup.send(
-                _("error_min_members_count", settings.MIN_PLAYERS),
-                ephemeral=True,
+                _("error_min_members_count", settings.MIN_PLAYERS), ephemeral=True
             )
             return
-        await self._create_match(ctx, match_type, members)
 
-    async def _create_match(
-        self,
-        ctx: discord.ApplicationContext,
-        match_type: str,
-        members: list[discord.Member],
-    ) -> None:
-        """
-        Create match.
+        discord_users_ids = (
+            [member.id for member in members]
+            if not settings.DEBUG
+            else [ctx.author.id, 859429903170273321, 692055783650754650]
+        )
+        guild = await guilds_retrieve.asyncio(
+            client=api_client, guild_id=str(ctx.guild.id)
+        )
+        server_id = server.split(":")[1] if server else None
 
-        Args:
-        ----
-            ctx (discord.ApplicationContext): Application context.
-            match_type (str): Match type.
-            members (list[discord.Member]): List of members.
+        create_match_data = CreateMatch(
+            match_type=MatchTypeEnum(match_type),
+            discord_users_ids=discord_users_ids,
+            author_id=ctx.author.id,
+            guild_id=guild.id,
+        )
 
-        Returns:
-        -------
-            None
+        if server:
+            create_match_data.server_id = server_id
 
-        """
-        discord_users_ids = [member.id for member in members]
-        if settings.TESTING:
-            discord_users_ids = [
-                ctx.author.id,
-                859429903170273321,
-                692055783650754650,
-            ]
+        if maplist:
+            maplist_split = maplist.split(",")
+            if match_type == "BO1" and len(maplist_split) != 1:
+                await ctx.followup.send(_("error_maplist_bo1"), ephemeral=True)
+                return
+            if match_type == "BO3" and len(maplist_split) != 3:
+                await ctx.followup.send(_("error_maplist_bo3"), ephemeral=True)
+                return
+            create_match_data.maplist = maplist_split
 
-        api_token = settings.API_TOKEN
-        webhook_url = f"{settings.API_URL}/api/matches/webhook/"
+        if sides:
+            sides_split = sides.split(",")
+            create_match_data.map_sides = sides_split
 
-        # Create match
+        if cvars:
+            cvars_dict = {}
+            if "," not in cvars:
+                cvar_detail = cvars.split("=")
+                if len(cvar_detail) != 2:
+                    return
+                cvars_dict[cvar_detail[0]] = cvar_detail[1]
+            else:
+                cvars_split = cvars.split(",")
+                if len(cvars_split) == 0:
+                    return
+                for cvar in cvars_split:
+                    cvar_detail = cvar.split("=")
+                    if len(cvar_detail) != 2:
+                        return
+                    cvars_dict[cvar_detail[0]] = cvar_detail[1]
+                if len(cvars_dict) == 0:
+                    return
+            create_match_data.cvars = CreateMatchCvars.from_dict(cvars_dict)
+
         try:
-            created_match, _ = await create_match(
-                data=CreateMatch(
-                    discord_users_ids=discord_users_ids,
-                    shuffle_teams=True,
-                    match_type=match_type,
-                    map_sides=["knife", "knife", "knife"],
-                    cvars={
-                        "matchzy_remote_log_url": webhook_url,
-                        "matchzy_remote_log_header_key": "X-Api-Key",
-                        "matchzy_remote_log_header_value": api_token,
-                    },
+            response: Response[Match] = await matches_create.asyncio_detailed(
+                client=api_client, body=create_match_data
+            )
+            if response.status_code != HTTPStatus.CREATED:
+                await ctx.followup.send(
+                    response.content.decode(encoding="utf-8"), ephemeral=True
                 )
+                return
+        except UnexpectedStatus as e:
+            data = (
+                json.loads(e.content.decode(encoding="utf-8"))
+                if isinstance(e.content, bytes)
+                else e.content
             )
+            if isinstance(data, dict) and (users := data.get("users")):
+                await ctx.followup.send(
+                    _(
+                        "error_users_not_exists",
+                        ", ".join([f"<@{user}>" for user in users]),
+                    ),
+                    ephemeral=True,
+                )
+            else:
+                await ctx.followup.send(data, ephemeral=True)
+            logger.error(repr(e))
+            return
 
-            # Send match embed and map ban view
-
-            map_ban_view = MapBanView(
+        match = response.parsed
+        match_embed = create_match_embed(match)
+        message = await ctx.followup.send(
+            embed=match_embed,
+            view=MapBanView(
                 options=[
-                    discord.SelectOption(label=tag, value=tag)
-                    for tag in created_match.get_maps_tags()
+                    discord.SelectOption(label=map.tag, value=map.tag)
+                    for map in match.maps
                 ],
-                match=created_match,
+                match=match,
             )
+            if not maplist
+            else LaunchMatchView(timeout=None, match=match),
+            allowed_mentions=discord.AllowedMentions(users=True, roles=True),
+        )
 
-            updated_match, _ = await update_match_author_id(
-                match_id=created_match.id, author_id=ctx.author.id
-            )
-
-            match_embed = updated_match.create_match_embed()
-
-            message = await ctx.followup.send(
-                embed=match_embed,
-                view=map_ban_view,
-                wait=True,
-                allowed_mentions=discord.AllowedMentions(users=True, roles=True),
-            )
-
-            await update_match_message_id(
-                match_id=created_match.id, message_id=message.id
-            )
-            logger.debug(
-                f"User {ctx.author.id} created match {created_match.id} of type {match_type} with members {discord_users_ids}. Message id {message.id}"
-            )
-        except httpx.HTTPError as exc:
-            self.handle_http_error(exc, ctx)
-        except ValidationError as exc:
-            await ctx.followup.send(
-                "ValidationError: Failed to create match", ephemeral=True
-            )
-            logger.error(exc.json())
-
-    async def handle_http_error(
-        self, exc: httpx.HTTPError, ctx: discord.ApplicationContext
-    ) -> None:
-        """Handles HTTP errors gracefully."""
-        data = exc.response.json()
-        user_id = data.get("user_id")
-        logger.error(data)
-        if user_id:
-            await ctx.followup.send(
-                f"User <@{user_id}> does not have a connected account",
-            )
-        else:
-            await ctx.followup.send(
-                f"HTTP {exc.response.status_code}: Failed to create match",
-                ephemeral=True,
-            )
+        logger.debug(
+            f"User {ctx.author.id} created match  of type {match_type} with members {discord_users_ids}. Message id {message.id}"
+        )
+        await matches_update.asyncio(
+            client=api_client, id=match.id, body=MatchUpdate(message_id=message.id)
+        )
+        logger.debug(f"Match updated: {message.id}")
 
     @tasks.loop(seconds=5)
     async def listen_events(self) -> None:
@@ -241,11 +318,13 @@ class MatchCog(commands.Cog):
                 OnSeriesStartEvent(self.bot, "series_start"),
                 OnSeriesEndEvent(self.bot, "series_end"),
                 OnMapResultEvent(self.bot, "map_result"),
-                OnRoundEndEvent(self.bot, "round_end"),
             ],
             pubsub=self.pubsub,
         )
-        await event_listener.listen()
+        try:
+            await event_listener.listen()
+        except Exception as e:
+            logger.error(repr(e))
 
     @listen_events.before_loop
     async def before_listen_events(self) -> None:

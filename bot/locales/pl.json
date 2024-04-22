@@ -12,14 +12,19 @@
         "join_to_match": "Dolacz do meczu",
         "recreate_match": "Stworz nowy mecz",
         "connect_to_server": "Polacz z serwerem",
-        "success_match_loaded": "Mecz zostal pomyslnie zaladowany.",
+        "success_match_loaded_without_server": "Aby rozpoczac mecz, uzyj ponizszej komendy  na twoim serwerze cs2 \n ```{}```",
         "embed_match_title": "Mecz został utworzony.",
         "embed_match_desc": "Mecz został utworzony.\n \n ID MECZU: {} \n \n TYP MECZU: {}",
         "maps": "Mapy",
+        "leader": "Lider",
         "error_user_is_not_in_voice_channel": "Nie jestes na kanale glosowym.",
         "error_min_members_count": "Potrzebujesz przynajmniej {} osób na kanale glosowym, aby utworzyc mecz.",
         "error_user_is_not_in_match": "Nie jestes w meczu.",
         "error_user_is_not_leader": "Nie jestes liderem druzyny.",
-        "error_user_is_no_author_of_match": "Nie jestes autorem meczu."
+        "error_user_is_no_author_of_match": "Nie jestes autorem meczu.",
+        "error_user_is_not_owner": "Nie jestes wlascicielem serwera.",
+        "error_users_not_exists": "Uzytkownicy {} nie istnieja w bazie danych.",
+        "error_maplist_bo1": "You need to enter only 1 map",
+        "error_maplist_bo3": "You need to enter 3 maps"
     }
 }
