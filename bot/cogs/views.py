@@ -13,9 +13,10 @@ from cs2_battle_bot_api_client.api.matches import (
     matches_load_create,
     matches_pick_create,
     matches_retrieve,
+    matches_shuffle_create,
 )
 from cs2_battle_bot_api_client.errors import UnexpectedStatus
-from cs2_battle_bot_api_client.models import Match
+from cs2_battle_bot_api_client.models import InteractionUser, Match
 from cs2_battle_bot_api_client.models.guild import Guild
 from cs2_battle_bot_api_client.models.match_ban_map import MatchBanMap
 from cs2_battle_bot_api_client.models.match_ban_map_result import MatchBanMapResult
@@ -33,7 +34,65 @@ from bot.i18n import _
 from bot.settings import api_client, settings
 
 
-class MapView(ABC, discord.ui.View):
+class MatchView(ABC, discord.ui.View):
+    def __init__(
+        self,
+        match: Match,
+    ) -> None:
+        """
+        Initialize match view.
+
+        Args:
+        ----
+                options (list[discord.SelectOption]): Options.
+                match (Match): Match object.
+                title (str, optional): Title. Defaults to None.
+
+        """
+        super().__init__()
+        self.match = match
+        self.shuffle_team_button = discord.ui.Button(
+            label=_("shuffle_teams"),
+            custom_id="shuffle-button",
+            style=discord.ButtonStyle.primary,
+        )
+        self.shuffle_team_button.callback = self.shuffle_teams_button_callback
+        self.add_item(self.shuffle_team_button)
+
+    async def shuffle_teams_button_callback(
+        self, interaction: discord.Interaction
+    ) -> None:
+        """
+        Shuffle teams button callback.
+
+        Args:
+        ----
+                self (MatchView): MatchView object.
+                interaction (discord.Interaction): Interaction object.
+
+        Returns:
+        -------
+                None
+
+        """
+        await interaction.response.defer()
+        try:
+            response: Response[Match] = await matches_shuffle_create.asyncio_detailed(
+                client=api_client,
+                id=self.match.id,
+                body=InteractionUser(interaction_user_id=interaction.user.id),
+            )
+        except UnexpectedStatus as err:
+            await interaction.followup.send(
+                json.loads(err.content.decode(encoding="utf-8"))["message"]
+            )
+            return
+        match = response.parsed
+        logger.logger.debug(f"Shuffled teams for match {match.id}")
+        await interaction.edit(embed=create_match_embed(match))
+
+
+class MapView(MatchView):
     """Map view."""
 
     def __init__(
@@ -52,14 +111,13 @@ class MapView(ABC, discord.ui.View):
                 title (str, optional): Title. Defaults to None.
 
         """
-        super().__init__()
+        super().__init__(match=match)
         self.select = discord.ui.Select(
             placeholder=title if title else _("chose_map_to_ban"),
             options=options,
         )
         self.select.callback = self.map_select_callback
         self.add_item(self.select)
-        self.match = match
 
     @abstractmethod
     async def map_select_callback(self, interaction: discord.Interaction) -> None:
@@ -417,7 +475,8 @@ class LaunchMatchView(discord.ui.View):
             / "temp"
             / f"match_{config_dict['matchid']}.json"
         )
-        async with Path(config_filename).open("w") as f:
+        config_path = Path(config_filename)
+        async with await config_path.open("w") as f:
             await f.write(config_string)
         file = discord.File(config_filename)
         await Path.unlink(config_filename)
@@ -475,7 +534,8 @@ class ConfigureGuildView(discord.ui.View):
         self.guild = guild
 
     @discord.ui.channel_select(
-        placeholder="Wybierz kanal dla lobby", channel_types=[discord.ChannelType.voice]
+        placeholder="Select channel for Lobby",
+        channel_types=[discord.ChannelType.voice],
     )
     async def configure_lobby_channel(
         self, select: discord.ui.Select, interaction: discord.Interaction
@@ -495,9 +555,14 @@ class ConfigureGuildView(discord.ui.View):
 
         """
         await interaction.response.defer()
+        if interaction.user.id != int(self.guild.owner.player.discord_user.user_id):
+            await interaction.followup.send(
+                _("error_user_is_not_owner"), ephemeral=True
+            )
+            return
         channel = select.values[0]
         await interaction.followup.send(
-            f"Kanal lobby ustawiony na {channel}", ephemeral=True
+            f"Channel lobby set to {channel}", ephemeral=True
         )
 
         response: Response[Guild] = await guilds_update.asyncio_detailed(
@@ -510,7 +575,8 @@ class ConfigureGuildView(discord.ui.View):
         logger.logger.debug(f"Updated guild: {updated_guild}")
 
     @discord.ui.channel_select(
-        placeholder="Wybierz kanal dla Team1", channel_types=[discord.ChannelType.voice]
+        placeholder="Select channel for Team 1",
+        channel_types=[discord.ChannelType.voice],
     )
     async def configure_team1_channel(
         self, select: discord.ui.Select, interaction: discord.Interaction
@@ -530,9 +596,15 @@ class ConfigureGuildView(discord.ui.View):
 
         """
         await interaction.response.defer()
+
+        if interaction.user.id != int(self.guild.owner.player.discord_user.user_id):
+            await interaction.followup.send(
+                _("error_user_is_not_owner"), ephemeral=True
+            )
+            return
         channel = select.values[0]
         await interaction.followup.send(
-            f"Kanal dla druzyny Team 1 ustawiony na {channel}", ephemeral=True
+            f"Channel Team 1 set to {channel}", ephemeral=True
         )
 
         response: Response[Guild] = await guilds_update.asyncio_detailed(
@@ -545,7 +617,8 @@ class ConfigureGuildView(discord.ui.View):
         logger.logger.debug(f"Updated guild: {updated_guild}")
 
     @discord.ui.channel_select(
-        placeholder="Wybierz kanal dla Team2", channel_types=[discord.ChannelType.voice]
+        placeholder="Select channel for Team 2",
+        channel_types=[discord.ChannelType.voice],
     )
     async def configure_team2_channel(
         self, select: discord.ui.Select, interaction: discord.Interaction
@@ -565,10 +638,14 @@ class ConfigureGuildView(discord.ui.View):
 
         """
         await interaction.response.defer()
-        # TODO add check if interaction.user is owner of guild
+        if interaction.user.id != int(self.guild.owner.player.discord_user.user_id):
+            await interaction.followup.send(
+                _("error_user_is_not_owner"), ephemeral=True
+            )
+            return
         channel = select.values[0]
         await interaction.followup.send(
-            f"Kanal dla druzyny Team 2 ustawiony na {channel}", ephemeral=True
+            f"Channel Team 2 set to {channel}", ephemeral=True
         )
 
         response: Response[Guild] = await guilds_update.asyncio_detailed(
