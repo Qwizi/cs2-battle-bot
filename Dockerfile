@@ -40,5 +40,7 @@ RUN chown -R fastapiuser:fastapi /app
 # Switch to the dedicated user
 USER fastapiuser
 
+
+
 # Start the bot.
 CMD ["task", "start"]

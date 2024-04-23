@@ -13,14 +13,19 @@
         "join_to_match": "Join to Match",
         "recreate_match": "Recreate Match",
         "connect_to_server": "Connect to Server",
-        "success_match_loaded": "Match loaded successfully.",
+        "success_match_loaded_without_server": "To load match use command below on your cs2 server \n ```{}```",
         "embed_match_title": "Match was created.",
         "embed_match_desc": "Match was created.\n \n MATCH ID: {} \n \n TYPE: {}",
         "maps": "Maps",
+        "leader": "Leader",
         "error_user_is_not_in_voice_channel": "You are not in a voice channel.",
         "error_min_members_count": "You need at least {} members in the voice channel to play this game.",
         "error_user_is_not_in_match": "You are not in a match.",
         "error_user_is_not_leader": "Only leader can do this.",
-        "error_user_is_no_author_of_match": "You are not the author of this match."
+        "error_user_is_no_author_of_match": "You are not the author of this match.",
+        "error_user_is_not_owner": "You are not the owner of this server",
+        "error_users_not_exists": "Users {} not exists in database.",
+        "error_maplist_bo1": "You need to enter only 1 map",
+        "error_maplist_bo3": "You need to enter 3 maps"
     }
 }

@@ -2,19 +2,57 @@
 
 import discord
 import redis
+from cs2_battle_bot_api_client.api.guilds import guilds_create, guilds_retrieve
+from cs2_battle_bot_api_client.errors import UnexpectedStatus
+from cs2_battle_bot_api_client.models import CreateGuild, Guild
+from cs2_battle_bot_api_client.types import Response
 from redis import ConnectionError, TimeoutError
 
 from bot.bot import bot
 from bot.cogs.match import MatchCog
 from bot.i18n import i18n
 from bot.logger import logger
-from bot.settings import settings
+from bot.settings import api_client, settings
 
 
 @bot.event
 async def on_ready() -> None:
     """Print a message when the bot is ready."""
     logger.debug(f"We have logged in as {bot.user}")
+
+
+@bot.event
+async def on_guild_join(guild: discord.Guild) -> None:
+    """
+    Handle the bot joining a guild.
+
+    Args:
+    ----
+        guild (discord.Guild): The guild the bot joined.
+
+    Returns:
+    -------
+        None: This function does not return anything.
+
+    """
+    logger.info(f"Bot joined guild: {guild.name}")
+    try:
+        await guilds_retrieve.asyncio_detailed(
+            client=api_client, guild_id=str(guild.id)
+        )
+    except UnexpectedStatus:
+        new_guild_response: Response[Guild] = await guilds_create.asyncio_detailed(
+            client=api_client,
+            body=CreateGuild(
+                guild_id=str(guild.id),
+                name=guild.name,
+                owner_id=str(guild.owner_id),
+                owner_username=guild.owner.name,
+            ),
+        )
+        logger.info(
+            f"Guild {new_guild_response.content.decode(encoding='utf-8') } created."
+        )
 
 
 @bot.event
@@ -35,6 +73,7 @@ async def on_application_command_error(
 
     """
     logger.error(repr(error))
+    logger.error(error)
     await ctx.respond("An error occurred while processing the command.")
 
 
