@@ -1,0 +1,92 @@
+version: '3.8'
+
+services:
+  app:
+    image: qwizii/cs2-battle-bot-api:v0.0.33
+    container_name: cs2_battle_bot_api_prod
+    command: sh -c "gunicorn cs2_battle_bot.wsgi:application --bind 0.0.0.0:8000"
+    expose:
+      - "8000"
+    volumes:
+      - static_volume:/app/staticfiles/
+      - /var/certbot/conf:/etc/letsencrypt/:rw
+    env_file:
+      - .env.example
+    restart: unless-stopped
+    depends_on:
+      - db
+    networks:
+      - cs2-battle-bot-network
+  db:
+    image: postgres:15.1
+    container_name: cs2_battle_bot_api_db_prod
+    environment:
+      - POSTGRES_DB=cs2_db
+      - POSTGRES_USER=cs2_user
+      - POSTGRES_PASSWORD=cs2_password
+    restart: unless-stopped
+    expose:
+      - 5435
+    healthcheck:
+      test: "exit 0"
+    networks:
+      - cs2-battle-bot-network
+    volumes:
+      - ./pgdata:/var/lib/postgresql/data
+  redis:
+    image: "redis:alpine"
+    container_name: cs2_battle_bot_api_redis_prod
+    restart: unless-stopped
+    env_file:
+      - .env.example
+    expose:
+      - 6379
+    networks:
+      - cs2-battle-bot-network
+  nginx:
+    image: nginx:stable-alpine3.17-slim
+    container_name: cs2_battle_bot_api_nginx_prod
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - static_volume:/app/staticfiles/
+      - ./default.conf:/etc/nginx/conf.d/default.conf
+      - /var/certbot/conf:/etc/letsencrypt/:rw
+      - certbot-var:/var/lib/letsencrypt
+    depends_on:
+      - app
+    networks:
+      - cs2-battle-bot-network
+  duckdns:
+    image: linuxserver/duckdns
+    env_file:
+      - .env.example
+    restart: unless-stopped
+  certbot:
+    image: certbot/certbot
+    volumes:
+      - static_volume:/app/staticfiles/
+      - /var/certbot/conf:/etc/letsencrypt/:rw
+      - certbot-var:/var/lib/letsencrypt
+      - /var/www/certbot/:/var/www/certbot/:rw
+    depends_on:
+      - nginx
+  bot:
+    image: qwizii/cs2-battle-bot:v0.0.10
+    container_name: cs2_battle_bot
+    env_file:
+      - .env.example
+    networks:
+      - cs2-battle-bot-network
+
+networks:
+  cs2-battle-bot-network:
+    external: true
+
+volumes:
+  static_volume:
+  pgdata:
+    driver: local
+  certbot-etc:
+  certbot-var:
