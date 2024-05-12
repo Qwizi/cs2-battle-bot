@@ -34,13 +34,13 @@ DATE=$(date +"%Y%m%d-%H%M%S")
 #    exit
 #fi
 
-case "$OS_TYPE" in
-arch | ubuntu | debian | raspbian | centos | fedora | rhel | ol | rocky | sles | opensuse-leap | opensuse-tumbleweed | almalinux | amzn) ;;
-*)
-    echo "This script only supports Debian, Redhat, Arch Linux, or SLES based operating systems for now."
-    exit
-    ;;
-esac
+#case "$OS_TYPE" in
+#arch | ubuntu | debian | raspbian | centos | fedora | rhel | ol | rocky | sles | opensuse-leap | opensuse-tumbleweed | almalinux | amzn) ;;
+#*)
+#    echo "This script only supports Debian, Redhat, Arch Linux, or SLES based operating systems for now."
+#    exit
+#    ;;
+#esac
 
 echo -e "-------------"
 echo -e "Welcome to CS2 Battle BOT installer!"

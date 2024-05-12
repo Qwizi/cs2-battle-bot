@@ -27,9 +27,6 @@ services:
       - 'CORS_ALLOW_ALL_ORIGINS=${CORS_ALLOW_ALL_ORIGINS}'
       - 'SECURE_SSL_REDIRECT=${SECURE_SSL_REDIRECT}'
       - 'SECURE_PROXY_SSL_HEADER=${SECURE_PROXY_SSL_HEADER}'
-      - 'DISCORD_BOT_TOKEN=${DISCORD_BOT_TOKEN}'
-      - 'API_URL=${API_URL}'
-      - 'API_KEY=${API_KEY}'
     restart: unless-stopped
     depends_on:
       - db
@@ -50,7 +47,7 @@ services:
     networks:
       - cs2-battle-bot-network
     volumes:
-      - './pgdata:/var/lib/postgresql/data'
+      - 'pgdata:/var/lib/postgresql/data'
   redis:
     image: 'redis:alpine'
     container_name: cs2_battle_bot_api_redis_prod
