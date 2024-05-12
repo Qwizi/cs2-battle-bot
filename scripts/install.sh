@@ -59,6 +59,7 @@ curl -fsSL $CDN/examples/without-ssl/docker-compose.yml -o cs2-battle-bot/docker
 curl -fsSL $CDN/examples/without-ssl/.env.example -o cs2-battle-bot/.env.example
 curl -fsSL $CDN/examples/without-ssl/default.conf -o cs2-battle-bot/default.conf
 curl -fsSL $CDN/scripts/upgrade.sh -o cs2-battle-bot/upgrade.sh
+curl -fsSL $CDN/scripts/uninstall.sh -o cs2-battle-bot/uninstall.sh
 
 
 
