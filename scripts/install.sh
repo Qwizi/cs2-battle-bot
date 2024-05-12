@@ -65,6 +65,7 @@ curl -fsSL $CDN/scripts/upgrade.sh -o cs2-battle-bot/upgrade.sh
 if [ ! -f cs2-battle-bot/.env ]; then
     cp cs2-battle-bot/.env.example cs2-battle-bot/.env
     sed -i "s|SECRET_KEY=.*|SECRET_KEY=$(openssl rand -hex 16)|g" cs2-battle-bot/.env
+    sed -i "s|DJANGO_SUPERUSER_PASSWORD=.*|API_KEY=$(openssl rand -hex 32)|g" cs2-battle-bot/.env
 fi
 
 # Merge .env and .env.production. New values will be added to .env
