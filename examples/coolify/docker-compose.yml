@@ -1,101 +1,101 @@
 services:
-  app:
-    image: 'qwizii/cs2-battle-bot-api:latest'
-    container_name: cs2_battle_bot_api_prod
-    command: 'sh -c "gunicorn cs2_battle_bot.wsgi:application --bind 0.0.0.0:8000"'
-    expose:
-      - '8000'
-    volumes:
-      - 'static_volume:/app/staticfiles/'
-    environment:
-      - 'DEBUG=${DEBUG}'
-      - 'SECRET_KEY=${SECRET_KEY}'
-      - 'DB_ENGINE=${DB_ENGINE}'
-      - 'DB_HOST=${DB_HOST}'
-      - 'DB_PORT=${DB_PORT}'
-      - 'POSTGRES_DB=${POSTGRES_DB}'
-      - 'POSTGRES_USER=${POSTGRES_USER}'
-      - 'POSTGRES_PASSWORD=${POSTGRES_PASSWORD}'
-      - 'REDIS_HOST=${REDIS_HOST}'
-      - 'REDIS_PORT=${REDIS_PORT}'
-      - 'REDIS_DB=${REDIS_DB}'
-      - 'REDIS_PASSWORD=${REDIS_PASSWORD}'
-      - 'DISCORD_CLIENT_ID=${DISCORD_CLIENT_ID}'
-      - 'DISCORD_CLIENT_SECRET=${DISCORD_CLIENT_SECRET}'
-      - 'STEAM_API_KEY=${STEAM_API_KEY}'
-      - 'CSRF_TRUSTED_ORIGINS=${CSRF_TRUSTED_ORIGINS}'
-      - 'CORS_ALLOW_ALL_ORIGINS=${CORS_ALLOW_ALL_ORIGINS}'
-      - 'SECURE_SSL_REDIRECT=${SECURE_SSL_REDIRECT}'
-      - 'SECURE_PROXY_SSL_HEADER=${SECURE_PROXY_SSL_HEADER}'
-    restart: unless-stopped
-    depends_on:
-      - db
-    networks:
-      - cs2-battle-bot-network
-  db:
-    image: 'postgres:15.1'
-    container_name: cs2_battle_bot_api_db_prod
-    environment:
-      - 'POSTGRES_DB=${POSTGRES_DB}'
-      - 'POSTGRES_USER=${POSTGRES_USER}'
-      - 'POSTGRES_PASSWORD=${POSTGRES_PASSWORD}'
-    restart: unless-stopped
-    expose:
-      - 5435
-    healthcheck:
-      test: 'exit 0'
-    networks:
-      - cs2-battle-bot-network
-    volumes:
-      - 'pgdata:/var/lib/postgresql/data'
-  redis:
-    image: 'redis:alpine'
-    container_name: cs2_battle_bot_api_redis_prod
-    restart: unless-stopped
-    command: '/bin/sh -c "redis-server --requirepass $$REDIS_PASSWORD"'
-    environment:
-      - 'REDIS_PASSWORD=${REDIS_PASSWORD}'
-    expose:
-      - 6379
-    networks:
-      - cs2-battle-bot-network
-  nginx:
-    image: nginx:stable-alpine3.17-slim
-    container_name: cs2_battle_bot_api_nginx_prod
-    expose:
-      - 80
-    volumes:
-      - static_volume:/app/staticfiles/
-      - ./default.conf:/etc/nginx/conf.d/default.conf
-    depends_on:
-      - app
-    networks:
-      - cs2-battle-bot-network
-  bot:
-    image: 'qwizii/cs2-battle-bot:latest'
-    container_name: cs2_battle_bot
-    environment:
-      - 'DISCORD_BOT_TOKEN=${DISCORD_BOT_TOKEN}'
-      - 'API_URL=${API_URL}'
-      - 'API_KEY=${API_KEY}'
-      - 'REDIS_HOST=${REDIS_HOST}'
-      - 'REDIS_PORT=${REDIS_PORT}'
-      - 'REDIS_DB=${REDIS_DB}'
-      - 'REDIS_PASSWORD=${REDIS_PASSWORD}'
-    networks:
-      - cs2-battle-bot-network
+    app:
+        image: 'qwizii/cs2-battle-bot-api:latest'
+        container_name: cs2_battle_bot_api_prod
+        command: 'sh -c "gunicorn cs2_battle_bot.wsgi:application --bind 0.0.0.0:8000"'
+        expose:
+            - '8000'
+        volumes:
+            - 'static_volume:/app/staticfiles/'
+        environment:
+            - 'DEBUG=${DEBUG}'
+            - 'SECRET_KEY=${SECRET_KEY}'
+            - 'DB_ENGINE=${DB_ENGINE}'
+            - 'DB_HOST=${DB_HOST}'
+            - 'DB_PORT=${DB_PORT}'
+            - 'POSTGRES_DB=${POSTGRES_DB}'
+            - 'POSTGRES_USER=${POSTGRES_USER}'
+            - 'POSTGRES_PASSWORD=${POSTGRES_PASSWORD}'
+            - 'REDIS_HOST=${REDIS_HOST}'
+            - 'REDIS_PORT=${REDIS_PORT}'
+            - 'REDIS_DB=${REDIS_DB}'
+            - 'REDIS_PASSWORD=${REDIS_PASSWORD}'
+            - 'DISCORD_CLIENT_ID=${DISCORD_CLIENT_ID}'
+            - 'DISCORD_CLIENT_SECRET=${DISCORD_CLIENT_SECRET}'
+            - 'STEAM_API_KEY=${STEAM_API_KEY}'
+            - 'CSRF_TRUSTED_ORIGINS=${CSRF_TRUSTED_ORIGINS}'
+            - 'CORS_ALLOW_ALL_ORIGINS=${CORS_ALLOW_ALL_ORIGINS}'
+            - 'SECURE_SSL_REDIRECT=${SECURE_SSL_REDIRECT}'
+            - 'SECURE_PROXY_SSL_HEADER=${SECURE_PROXY_SSL_HEADER}'
+        restart: unless-stopped
+        depends_on:
+            - db
+        networks:
+            - cs2-battle-bot-network
+    db:
+        image: 'postgres:15.1'
+        container_name: cs2_battle_bot_api_db_prod
+        environment:
+            - 'POSTGRES_DB=${POSTGRES_DB}'
+            - 'POSTGRES_USER=${POSTGRES_USER}'
+            - 'POSTGRES_PASSWORD=${POSTGRES_PASSWORD}'
+        restart: unless-stopped
+        expose:
+            - 5435
+        healthcheck:
+            test: 'exit 0'
+        networks:
+            - cs2-battle-bot-network
+        volumes:
+            - 'pgdata:/var/lib/postgresql/data'
+    redis:
+        image: 'redis:alpine'
+        container_name: cs2_battle_bot_api_redis_prod
+        restart: unless-stopped
+        command: '/bin/sh -c "redis-server --requirepass $$REDIS_PASSWORD"'
+        environment:
+            - 'REDIS_PASSWORD=${REDIS_PASSWORD}'
+        expose:
+            - 6379
+        networks:
+            - cs2-battle-bot-network
+    nginx:
+        image: nginx:stable-alpine3.17-slim
+        container_name: cs2_battle_bot_api_nginx_prod
+        expose:
+            - 80
+        volumes:
+            - static_volume:/app/staticfiles/
+            - ./default.conf:/etc/nginx/conf.d/default.conf
+        depends_on:
+            - app
+        networks:
+            - cs2-battle-bot-network
+    bot:
+        image: 'qwizii/cs2-battle-bot:latest'
+        container_name: cs2_battle_bot
+        environment:
+            - 'DISCORD_BOT_TOKEN=${DISCORD_BOT_TOKEN}'
+            - 'API_URL=${API_URL}'
+            - 'API_KEY=${API_KEY}'
+            - 'REDIS_HOST=${REDIS_HOST}'
+            - 'REDIS_PORT=${REDIS_PORT}'
+            - 'REDIS_DB=${REDIS_DB}'
+            - 'REDIS_PASSWORD=${REDIS_PASSWORD}'
+        networks:
+            - cs2-battle-bot-network
     coolify-helper:
-      image: ghcr.io/coollabsio/coolify-helper:latest
-      container_name: coolify-helper
-      volumes:
-        - /var/run/docker.sock:/var/run/docker.sock
-        - ./:/
-      networks:
-        - cs2-battle-bot-network
+        image: ghcr.io/coollabsio/coolify-helper:latest
+        container_name: coolify-helper
+        volumes:
+            - /var/run/docker.sock:/var/run/docker.sock
+            - ./:/
+        networks:
+            - cs2-battle-bot-network
 
 networks:
-  cs2-battle-bot-network:
-    external: true
+    cs2-battle-bot-network:
+        external: true
 volumes:
-  static_volume: null
-  pgdata: null
+    static_volume: null
+    pgdata: null
