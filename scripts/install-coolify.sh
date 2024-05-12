@@ -58,8 +58,8 @@ echo "Downloading required files from CDN..."
 curl -fsSL $CDN/examples/coolify/docker-compose.yml -o docker-compose.yml
 curl -fsSL $CDN/examples/coolify/.env.example -o .env.example
 curl -fsSL $CDN/examples/coolify/default.conf -o default.conf
-curl -fsSL $CDN/scripts/upgrade.sh -o cs2-battle-bot/upgrade.sh
-curl -fsSL $CDN/scripts/uninstall.sh -o cs2-battle-bot/uninstall.sh
+curl -fsSL $CDN/scripts/upgrade.sh -o upgrade.sh
+curl -fsSL $CDN/scripts/uninstall.sh -o uninstall.sh
 
 chmod +x upgrade.sh
 chmod +x uninstall.sh
