@@ -84,6 +84,15 @@ services:
       - 'REDIS_PASSWORD=${REDIS_PASSWORD}'
     networks:
       - cs2-battle-bot-network
+    coolify-helper:
+      image: ghcr.io/coollabsio/coolify-helper:latest
+      container_name: coolify-helper
+      volumes:
+        - /var/run/docker.sock:/var/run/docker.sock
+        - ./:/
+      networks:
+        - cs2-battle-bot-network
+
 networks:
   cs2-battle-bot-network:
     external: true
