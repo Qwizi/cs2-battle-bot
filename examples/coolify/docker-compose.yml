@@ -116,6 +116,7 @@ services:
         privileged: true
         volumes:
             - /var/run/docker.sock:/var/run/docker.sock
+            - ./docker-compose.yml/:/artifacts/docker-compose.yml
         networks:
             - cs2-battle-bot-network
 
