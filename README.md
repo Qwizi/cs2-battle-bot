@@ -15,6 +15,10 @@ To invite the bot to your Discord server, click [here](https://discord.com/oauth
 ## Requirements
 CS2 server with plugin [MatchZy](https://github.com/shobhit-pathak/MatchZy)
 
+## Installation
+```shell
+curl -fsSL https://raw.githubusercontent.com/Qwizi/cs2-battle-bot/master/scripts/install.sh | bash 
+```
 
 ## Showcase
 ![server configure](https://i.imgur.com/aA2tYBl.png)
@@ -22,8 +26,6 @@ CS2 server with plugin [MatchZy](https://github.com/shobhit-pathak/MatchZy)
 ![match created](https://i.imgur.com/aFPi4x9.png)
 ![match map veto end](https://i.imgur.com/n94FY3q.png)
 ![match started](https://i.imgur.com/vQChD8k.png)
-## Installation
-In Progress...
 
 ## TODO
 - [] Uploading demo files to backend server and after match finished attaching this demo file to match embed files
