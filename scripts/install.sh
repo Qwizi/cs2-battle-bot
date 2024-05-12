@@ -67,8 +67,8 @@ curl -fsSL $CDN/scripts/uninstall.sh -o cs2-battle-bot/uninstall.sh
 if [ ! -f cs2-battle-bot/.env ]; then
     cp cs2-battle-bot/.env.example cs2-battle-bot/.env
 
-#    DJANGO_SECRET_KEY=$(docker compose --env-file cs2-battle-bot/.env -f cs2-battle-bot/docker-compose.yml exec -T app python -c 'from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())')
-#    sed -i "s|SECRET_KEY=.*|SECRET_KEY=$DJANGO_SECRET_KEY|g" cs2-battle-bot/.env
+    DJANGO_SECRET_KEY=$(openssl rand -hex 50)
+    sed -i "s|SECRET_KEY=.*|SECRET_KEY=$DJANGO_SECRET_KEY|g" cs2-battle-bot/.env
 
     API_URL=$1
     sed -i "s|API_URL=.*|API_URL=$API_URL|g" cs2-battle-bot/.env

@@ -13,9 +13,12 @@ curl -fsSL $CDN/scripts/uninstall.sh -o cs2-battle-bot/uninstall.sh
 
 # Check if SECRET_KEY is empty in cs2-battle-bot/.env
 if grep -q "SECRET_KEY=django-insecure" cs2-battle-bot/.env; then
-    DJANGO_SECRET_KEY=$(docker compose --env-file cs2-battle-bot/.env -f cs2-battle-bot/docker-compose.yml exec -T app python -c 'from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())')
+    DJANGO_SECRET_KEY=$(openssl rand -hex 50)
     sed -i "s|SECRET_KEY=.*|SECRET_KEY=$DJANGO_SECRET_KEY|g" cs2-battle-bot/.env
 fi
+
+sort -u -t '=' -k 1,1 cs2-battle-bot/.env cs2-battle-bot/.env.example | sed '/^$/d' >cs2-battle-bot/.env.temp && mv cs2-battle-bot/.env.temp cs2-battle-bot/.env
+
 
 # Make sure cs2-battle-bot-network network exists
 docker network create --attachable cs2-battle-bot-network 2>/dev/null
