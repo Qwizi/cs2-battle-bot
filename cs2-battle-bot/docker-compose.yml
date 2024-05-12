@@ -1,6 +1,6 @@
 services:
   app:
-    image: qwizii/cs2-battle-bot-api:latest
+    image: qwizii/cs2-battle-bot-api:v0.0.34
     container_name: cs2_battle_bot_api_prod
     command: sh -c "gunicorn cs2_battle_bot.wsgi:application --bind 0.0.0.0:8000"
     expose:
@@ -8,7 +8,7 @@ services:
     volumes:
       - static_volume:/app/staticfiles/
     env_file:
-      - .env
+      - .env.example
     restart: unless-stopped
     depends_on:
       - db
@@ -17,8 +17,10 @@ services:
   db:
     image: postgres:15.1
     container_name: cs2_battle_bot_api_db_prod
-    env_file:
-        - .env
+    environment:
+      - POSTGRES_DB=cs2_db
+      - POSTGRES_USER=cs2_user
+      - POSTGRES_PASSWORD=cs2_password
     restart: unless-stopped
     expose:
       - 5435
@@ -34,7 +36,7 @@ services:
     restart: unless-stopped
     command: /bin/sh -c "redis-server --requirepass $$REDIS_PASSWORD"
     env_file:
-      - .env
+      - .env.example
     expose:
       - 6379
     networks:
@@ -52,10 +54,10 @@ services:
     networks:
       - cs2-battle-bot-network
   bot:
-    image: qwizii/cs2-battle-bot:latest
+    image: qwizii/cs2-battle-bot:v0.0.10
     container_name: cs2_battle_bot
     env_file:
-      - .env
+      - .env.example
     networks:
       - cs2-battle-bot-network
 
