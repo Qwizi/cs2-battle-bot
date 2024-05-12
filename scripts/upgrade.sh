@@ -39,7 +39,8 @@ if [ "$SUPERUSER_COUNT" = "0" ]; then
     fi
     # get the password from .env
     DJANGO_SUPERUSER_PASSWORD=$(grep "DJANGO_SUPERUSER_PASSWORD" cs2-battle-bot/.env | cut -d '=' -f 2)
-    docker compose --env-file cs2-battle-bot/.env -f cs2-battle-bot/docker-compose.yml exec -T app python manage.py shell -c "from django.contrib.auth import get_user_model; User = get_user_model(); User.objects.create_superuser('admin', '$DJANGO_SUPERUSER_PASSWORD');"    echo "Superuser admin created with password $DJANGO_SUPERUSER_PASSWORD"
+    docker compose --env-file cs2-battle-bot/.env -f cs2-battle-bot/docker-compose.yml exec -T app python manage.py shell -c "from django.contrib.auth import get_user_model; User = get_user_model(); User.objects.create_superuser('admin', '$DJANGO_SUPERUSER_PASSWORD');"
+    echo "Superuser admin created with password $DJANGO_SUPERUSER_PASSWORD"
     echo "Please change the password after the first login."
 fi
 
