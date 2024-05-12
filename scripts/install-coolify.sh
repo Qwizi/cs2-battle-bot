@@ -55,8 +55,6 @@ echo -e "Creating directories..."
 mkdir -p cs2-battle-bot/
 
 echo "Downloading required files from CDN..."
-curl -fsSL $CDN/examples/coolify/docker-compose.yml -o docker-compose.yml
-curl -fsSL $CDN/examples/coolify/.env.example -o .env.example
 curl -fsSL $CDN/examples/coolify/default.conf -o default.conf
 curl -fsSL $CDN/scripts/upgrade.sh -o upgrade.sh
 curl -fsSL $CDN/scripts/uninstall.sh -o uninstall.sh
@@ -94,6 +92,7 @@ chmod +x uninstall.sh
 ## Merge .env and .env.production. New values will be added to .env
 #sort -u -t '=' -k 1,1 cs2-battle-bot/.env cs2-battle-bot/.env.example | sed '/^$/d' >cs2-battle-bot/.env.temp && mv cs2-battle-bot/.env.temp cs2-battle-bot/.env
 
+docker compose  docker-compose.yml up -d --pull always --remove-orphans --force-recreate
 
 #bash cs2-battle-bot/upgrade.sh
 
