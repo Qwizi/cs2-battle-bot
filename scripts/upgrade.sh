@@ -33,7 +33,7 @@ SUPERUSER_COUNT=$(docker compose --env-file cs2-battle-bot/.env -f cs2-battle-bo
 # Create superuser if there are no superusers in the database
 if [ "$SUPERUSER_COUNT" = "0" ]; then
     # Get DJANGO_SUPERUSER_USERNAME from .env
-    docker compose --env-file cs2-battle-bot/.env -f cs2-battle-bot/docker-compose.yml exec app python manage.py createsuperuser --noinput --username admin
+    docker compose --env-file cs2-battle-bot/.env -f cs2-battle-bot/docker-compose.yml exec -T app python manage.py createsuperuser --noinput --username admin
     echo "Superuser admin created with password $DJANGO_SUPERUSER_PASSWORD"
     echo "Please change the password after the first login."
 
@@ -46,7 +46,7 @@ API_KEY_COUNT=$(docker compose --env-file cs2-battle-bot/.env -f cs2-battle-bot/
 
 # Create API key if there are no api keys in the database
 if [ "$API_KEY_COUNT" = "0" ]; then
-    API_KEY=$(docker compose --env-file cs2-battle-bot/.env -f cs2-battle-bot/docker-compose.yml exec app python manage.py shell -c "from rest_framework_api_key.models import APIKey; api_key, key = APIKey.objects.create_key(name='cs2-battle-bot'); print(key);")
+    API_KEY=$(docker compose --env-file cs2-battle-bot/.env -f cs2-battle-bot/docker-compose.yml exec -T app python manage.py shell -c "from rest_framework_api_key.models import APIKey; api_key, key = APIKey.objects.create_key(name='cs2-battle-bot'); print(key);")
     echo "Api key created: $API_KEY."
 
     # set API_KEY to env file
@@ -59,7 +59,7 @@ fi
 MAP_COUNT=$(docker compose --env-file cs2-battle-bot/.env -f cs2-battle-bot/docker-compose.yml exec -T app python manage.py shell -c "from matches.models import Map; print(Map.objects.all().count());")
 # Load map fixtures if there are no maps in the database
 if [ "$MAP_COUNT" = "0" ]; then
-    docker compose --env-file cs2-battle-bot/.env -f cs2-battle-bot/docker-compose.yml exec app python manage.py loaddata maps
+    docker compose --env-file cs2-battle-bot/.env -f cs2-battle-bot/docker-compose.yml exec -T app python manage.py loaddata maps
 fi
 
 echo "CS2 Battle BOT has been updated to the latest version!"
