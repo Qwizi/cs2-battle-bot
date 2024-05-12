@@ -92,7 +92,7 @@ chmod +x uninstall.sh
 ## Merge .env and .env.production. New values will be added to .env
 #sort -u -t '=' -k 1,1 cs2-battle-bot/.env cs2-battle-bot/.env.example | sed '/^$/d' >cs2-battle-bot/.env.temp && mv cs2-battle-bot/.env.temp cs2-battle-bot/.env
 
-docker compose  -f docker-compose.yml up -d --pull always --remove-orphans --force-recreate
+docker compose up -d --pull always --remove-orphans --force-recreate
 
 #bash cs2-battle-bot/upgrade.sh
 
