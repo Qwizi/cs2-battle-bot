@@ -25,10 +25,10 @@ docker network create --attachable cs2-battle-bot-network 2>/dev/null
 docker compose --env-file cs2-battle-bot/.env -f cs2-battle-bot/docker-compose.yml up -d --pull always --remove-orphans --force-recreate
 
 # Run app migrations
-docker compose --env-file cs2-battle-bot/.env -f cs2-battle-bot/docker-compose.yml exec app python manage.py migrate
+docker compose --env-file cs2-battle-bot/.env -f cs2-battle-bot/docker-compose.yml exec -T app python manage.py migrate
 
 # Check if there are any superusers in the database
-SUPERUSER_COUNT=$(docker compose --env-file cs2-battle-bot/.env -f cs2-battle-bot/docker-compose.yml exec app python manage.py shell -c "from django.contrib.auth import get_user_model; User = get_user_model(); print(User.objects.filter(is_superuser=True).count());")
+SUPERUSER_COUNT=$(docker compose --env-file cs2-battle-bot/.env -f cs2-battle-bot/docker-compose.yml exec -T app python manage.py shell -c "from django.contrib.auth import get_user_model; User = get_user_model(); print(User.objects.filter(is_superuser=True).count());")
 
 # Create superuser if there are no superusers in the database
 if [ "$SUPERUSER_COUNT" = "0" ]; then
@@ -42,7 +42,7 @@ if [ "$SUPERUSER_COUNT" = "0" ]; then
 fi
 
 # Check if there any api keys in the database
-API_KEY_COUNT=$(docker compose --env-file cs2-battle-bot/.env -f cs2-battle-bot/docker-compose.yml exec app python manage.py shell -c "from rest_framework_api_key.models import APIKey; print(APIKey.objects.all().count());")
+API_KEY_COUNT=$(docker compose --env-file cs2-battle-bot/.env -f cs2-battle-bot/docker-compose.yml exec -T app python manage.py shell -c "from rest_framework_api_key.models import APIKey; print(APIKey.objects.all().count());")
 
 # Create API key if there are no api keys in the database
 if [ "$API_KEY_COUNT" = "0" ]; then
@@ -56,8 +56,7 @@ if [ "$API_KEY_COUNT" = "0" ]; then
 fi
 
 # Check map count in database
-MAP_COUNT=$(docker compose --env-file cs2-battle-bot/.env -f cs2-battle-bot/docker-compose.yml exec app python manage.py shell -c "from matches.models import Map; print(Map.objects.all().count());")
-
+MAP_COUNT=$(docker compose --env-file cs2-battle-bot/.env -f cs2-battle-bot/docker-compose.yml exec -T app python manage.py shell -c "from matches.models import Map; print(Map.objects.all().count());")
 # Load map fixtures if there are no maps in the database
 if [ "$MAP_COUNT" = "0" ]; then
     docker compose --env-file cs2-battle-bot/.env -f cs2-battle-bot/docker-compose.yml exec app python manage.py loaddata maps
