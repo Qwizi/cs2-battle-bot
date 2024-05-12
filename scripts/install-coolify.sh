@@ -55,7 +55,9 @@ echo -e "Creating directories..."
 mkdir -p cs2-battle-bot/
 
 echo "Downloading required files from CDN..."
+
 curl -fsSL $CDN/examples/coolify/default.conf -o default.conf
+curl -fsSL $CDN/examples/coolify/docker-compose.yml -o docker-compose.yml
 curl -fsSL $CDN/scripts/upgrade.sh -o upgrade.sh
 curl -fsSL $CDN/scripts/uninstall.sh -o uninstall.sh
 
