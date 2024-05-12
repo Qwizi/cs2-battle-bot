@@ -17,7 +17,15 @@ CS2 server with plugin [MatchZy](https://github.com/shobhit-pathak/MatchZy)
 
 ## Installation
 ```shell
-curl -fsSL https://raw.githubusercontent.com/Qwizi/cs2-battle-bot/master/scripts/install.sh | bash 
+curl -fsSL https://raw.githubusercontent.com/Qwizi/cs2-battle-bot/master/scripts/install.sh | bash -s http://localhost:8000 your_discord_client_id your_discord_client_secret your_discord_bot_token 
+```
+## Upgrade
+```shell
+curl -fsSL https://raw.githubusercontent.com/Qwizi/cs2-battle-bot/master/scripts/upgrade.sh | bash
+```
+## Uninstall
+```shell
+curl -fsSL https://raw.githubusercontent.com/Qwizi/cs2-battle-bot/master/scripts/uninstall.sh | bash
 ```
 
 ## Showcase
