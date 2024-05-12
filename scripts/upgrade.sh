@@ -32,8 +32,9 @@ SUPERUSER_COUNT=$(docker compose --env-file cs2-battle-bot/.env -f cs2-battle-bo
 
 # Create superuser if there are no superusers in the database
 if [ "$SUPERUSER_COUNT" = "0" ]; then
-    docker compose --env-file cs2-battle-bot/.env -f cs2-battle-bot/docker-compose.yml exec app python manage.py createsuperuser --noinput --username "$DJANGO_SUPERUSER_USERNAME"
-    echo "Superuser $DJANGO_SUPERUSER_USERNAME created with password $DJANGO_SUPERUSER_PASSWORD"
+    # Get DJANGO_SUPERUSER_USERNAME from .env
+    docker compose --env-file cs2-battle-bot/.env -f cs2-battle-bot/docker-compose.yml exec app python manage.py createsuperuser --noinput --username admin
+    echo "Superuser admin created with password $DJANGO_SUPERUSER_PASSWORD"
     echo "Please change the password after the first login."
 
     # set DJANGO_SUPERUSER_PASSWORD to empty string
@@ -62,6 +63,5 @@ if [ "$MAP_COUNT" = "0" ]; then
     docker compose --env-file cs2-battle-bot/.env -f cs2-battle-bot/docker-compose.yml exec app python manage.py loaddata maps
 fi
 
-docker compose --env-file cs2-battle-bot/.env -f cs2-battle-bot/docker-compose.yml exec app python manage.py loaddata maps
 echo "CS2 Battle BOT has been updated to the latest version!"
 echo "Please check the logs to make sure everything is running fine."
