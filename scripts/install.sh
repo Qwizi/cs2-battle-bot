@@ -61,6 +61,10 @@ curl -fsSL $CDN/examples/without-ssl/default.conf -o cs2-battle-bot/default.conf
 curl -fsSL $CDN/scripts/upgrade.sh -o cs2-battle-bot/upgrade.sh
 curl -fsSL $CDN/scripts/uninstall.sh -o cs2-battle-bot/uninstall.sh
 
+chmod +x cs2-battle-bot/upgrade.sh
+chmod +x cs2-battle-bot/uninstall.sh
+
+
 
 
 # Copy .env.example if .env does not exist
@@ -74,13 +78,16 @@ if [ ! -f cs2-battle-bot/.env ]; then
     sed -i "s|API_URL=.*|API_URL=$API_URL|g" cs2-battle-bot/.env
     sed -i "s|CSRF_TRUSTED_ORIGINS=.*|CSRF_TRUSTED_ORIGINS=$API_URL|g" cs2-battle-bot/.env
 
-    DISCORD_CLIENT_ID=$2
+    STEAM_API_KEY=$2
+    sed -i "s|STEAM_API_KEY=.*|STEAM_API_KEY=$STEAM_API_KEY|g" cs2-battle-bot/.env
+
+    DISCORD_CLIENT_ID=$3
     sed -i "s|DISCORD_CLIENT_ID=.*|DISCORD_CLIENT_ID=$DISCORD_CLIENT_ID|g" cs2-battle-bot/.env
 
-    DISCORD_CLIENT_SECRET=$3
+    DISCORD_CLIENT_SECRET=$4
     sed -i "s|DISCORD_CLIENT_SECRET=.*|DISCORD_CLIENT_SECRET=$DISCORD_CLIENT_SECRET|g" cs2-battle-bot/.env
 
-    DISCORD_BOT_TOKEN=$4
+    DISCORD_BOT_TOKEN=$5
     sed -i "s|DISCORD_BOT_TOKEN=.*|DISCORD_BOT_TOKEN=$DISCORD_BOT_TOKEN|g" cs2-battle-bot/.env
 fi
 

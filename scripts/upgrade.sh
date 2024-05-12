@@ -35,11 +35,12 @@ SUPERUSER_COUNT=$(docker compose --env-file cs2-battle-bot/.env -f cs2-battle-bo
 
 # Create superuser if there are no superusers in the database
 if [ "$SUPERUSER_COUNT" = "0" ]; then
+    API_URL=$(grep "API_URL=" cs2-battle-bot/.env | cut -d '=' -f2)
     SUPERUSER_PASSWORD=$(openssl rand -hex 16)
     docker compose --env-file cs2-battle-bot/.env -f cs2-battle-bot/docker-compose.yml exec -T app python manage.py shell -c "from django.contrib.auth import get_user_model; User = get_user_model(); User.objects.create_superuser(username='admin', password='$SUPERUSER_PASSWORD', email=None);"
 
     echo "Superuser admin created with password $SUPERUSER_PASSWORD"
-    echo "Please change the password after the first login."
+    echo "Go to $API_URL/admin/password_change/ and login with the superuser to change the password"
 fi
 
 # Check if there any api keys in the database
