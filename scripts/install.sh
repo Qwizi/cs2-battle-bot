@@ -6,7 +6,7 @@ set -e # Exit immediately if a command exits with a non-zero status
 #set -u # Treat unset variables as an error and exit
 set -o pipefail # Cause a pipeline to return the status of the last command that exited with a non-zero status
 
-VERSION="0.0.2"
+VERSION="0.0.3"
 CDN="https://raw.githubusercontent.com/Qwizi/cs2-battle-bot/master"
 OS_TYPE=$(grep -w "ID" /etc/os-release | cut -d "=" -f 2 | tr -d '"')
 
@@ -58,7 +58,7 @@ echo "Downloading required files from CDN..."
 curl -fsSL $CDN/examples/without-ssl/docker-compose.yml -o cs2-battle-bot/docker-compose.yml
 curl -fsSL $CDN/examples/without-ssl/.env.example -o cs2-battle-bot/.env.example
 curl -fsSL $CDN/examples/without-ssl/default.conf -o cs2-battle-bot/default.conf
-curl -fsSL $CDN/upgrade.sh -o cs2-battle-bot/upgrade.sh
+curl -fsSL $CDN/scripts/upgrade.sh -o cs2-battle-bot/upgrade.sh
 
 
 # Copy .env.example if .env does not exist
