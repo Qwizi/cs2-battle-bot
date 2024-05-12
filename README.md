@@ -17,8 +17,9 @@ CS2 server with plugin [MatchZy](https://github.com/shobhit-pathak/MatchZy)
 
 ## Installation
 ```shell
-curl -fsSL https://raw.githubusercontent.com/Qwizi/cs2-battle-bot/master/scripts/install.sh | bash -s http://localhost:8000 your_discord_client_id your_discord_client_secret your_discord_bot_token 
+curl -fsSL https://bit.ly/4bwkJne | bash -s http://localhost:8000 steam_api_key discord_client_id discord_client_secret discord_bot_token
 ```
+
 ## Upgrade
 ```shell
 ./upgrade.sh

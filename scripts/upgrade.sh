@@ -49,8 +49,6 @@ API_KEY_COUNT=$(docker compose --env-file cs2-battle-bot/.env -f cs2-battle-bot/
 # Create API key if there are no api keys in the database and API_KEY is not set in .env
 if [ "$API_KEY_COUNT" = "0" ] && grep -q "API_KEY=$" cs2-battle-bot/.env; then
     API_KEY=$(docker compose --env-file cs2-battle-bot/.env -f cs2-battle-bot/docker-compose.yml exec -T app python manage.py shell -c "from rest_framework_api_key.models import APIKey; api_key, key = APIKey.objects.create_key(name='cs2-battle-bot'); print(key);")
-    echo "Api key created: $API_KEY."
-
     # set API_KEY to env file
     sed -i "s|API_KEY=.*|API_KEY=$API_KEY|g" cs2-battle-bot/.env
 
