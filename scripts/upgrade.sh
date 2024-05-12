@@ -9,13 +9,11 @@ curl -fsSL $CDN/examples/without-ssl/.env.example -o cs2-battle-bot/.env.example
 curl -fsSL $CDN/examples/without-ssl/default.conf -o cs2-battle-bot/default.conf
 curl -fsSL $CDN/scripts/upgrade.sh -o cs2-battle-bot/upgrade.sh
 
-# Merge .env and .env.production. New values will be added to .env
-sort -u -t '=' -k 1,1 cs2-battle-bot/.env cs2-battle-bot/.env.example | sed '/^$/d' >cs2-battle-bot/.env.temp && mv cs2-battle-bot/.env.temp cs2-battle-bot/.env
 
-# Check if PUSHER_APP_ID or PUSHER_APP_KEY or PUSHER_APP_SECRET is empty in /data/coolify/source/.env
+# Check if SECRET_KEY is empty in cs2-battle-bot/.env
 if grep -q "SECRET_KEY=$" cs2-battle-bot/.env; then
-    sed -i "s|SECRET_KEY=.*|SECRET_KEY=$(openssl rand -hex 32)|g" cs2-battle-bot/.env
-    sed -i "s|DJANGO_SUPERUSER_PASSWORD=.*|API_KEY=$(openssl rand -hex 32)|g" cs2-battle-bot/.env
+    DJANGO_SECRET_KEY=$(docker compose --env-file cs2-battle-bot/.env -f cs2-battle-bot/docker-compose.yml exec -T app python -c 'from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())')
+    sed -i "s|SECRET_KEY=.*|SECRET_KEY=$DJANGO_SECRET_KEY|g" cs2-battle-bot/.env
 fi
 
 # Make sure cs2-battle-bot-network network exists
@@ -32,20 +30,23 @@ SUPERUSER_COUNT=$(docker compose --env-file cs2-battle-bot/.env -f cs2-battle-bo
 
 # Create superuser if there are no superusers in the database
 if [ "$SUPERUSER_COUNT" = "0" ]; then
-    # Get DJANGO_SUPERUSER_USERNAME from .env
+    # IF DJANGO_SUPERUSER_PASSWORD is empty, generate a random password
+    if grep -q "DJANGO_SUPERUSER_PASSWORD=$" cs2-battle-bot/.env; then
+        DJANGO_SUPERUSER_PASSWORD=$(openssl rand -hex 16)
+        sed -i "s|DJANGO_SUPERUSER_PASSWORD=.*|DJANGO_SUPERUSER_PASSWORD=$DJANGO_SUPERUSER_PASSWORD|g" cs2-battle-bot/.env
+    fi
+    # get the password from .env
+    DJANGO_SUPERUSER_PASSWORD=$(grep "DJANGO_SUPERUSER_PASSWORD" cs2-battle-bot/.env | cut -d '=' -f 2)
     docker compose --env-file cs2-battle-bot/.env -f cs2-battle-bot/docker-compose.yml exec -T app python manage.py createsuperuser --noinput --username admin
     echo "Superuser admin created with password $DJANGO_SUPERUSER_PASSWORD"
     echo "Please change the password after the first login."
-
-    # set DJANGO_SUPERUSER_PASSWORD to empty string
-    sed -i "s|DJANGO_SUPERUSER_PASSWORD=.*|DJANGO_SUPERUSER_PASSWORD=|g" cs2-battle-bot/.env
 fi
 
 # Check if there any api keys in the database
 API_KEY_COUNT=$(docker compose --env-file cs2-battle-bot/.env -f cs2-battle-bot/docker-compose.yml exec -T app python manage.py shell -c "from rest_framework_api_key.models import APIKey; print(APIKey.objects.all().count());")
 
-# Create API key if there are no api keys in the database
-if [ "$API_KEY_COUNT" = "0" ]; then
+# Create API key if there are no api keys in the database and API_KEY is not set in .env
+if [ "$API_KEY_COUNT" = "0" ] && grep -q "API_KEY=$" cs2-battle-bot/.env; then
     API_KEY=$(docker compose --env-file cs2-battle-bot/.env -f cs2-battle-bot/docker-compose.yml exec -T app python manage.py shell -c "from rest_framework_api_key.models import APIKey; api_key, key = APIKey.objects.create_key(name='cs2-battle-bot'); print(key);")
     echo "Api key created: $API_KEY."
 
@@ -61,6 +62,10 @@ MAP_COUNT=$(docker compose --env-file cs2-battle-bot/.env -f cs2-battle-bot/dock
 if [ "$MAP_COUNT" = "0" ]; then
     docker compose --env-file cs2-battle-bot/.env -f cs2-battle-bot/docker-compose.yml exec -T app python manage.py loaddata maps
 fi
+
+# Merge .env and .env.production. New values will be added to .env
+sort -u -t '=' -k 1,1 cs2-battle-bot/.env cs2-battle-bot/.env.example | sed '/^$/d' >cs2-battle-bot/.env.temp && mv cs2-battle-bot/.env.temp cs2-battle-bot/.env
+
 
 echo "CS2 Battle BOT has been updated to the latest version!"
 echo "Please check the logs to make sure everything is running fine."

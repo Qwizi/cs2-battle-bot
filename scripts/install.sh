@@ -61,11 +61,30 @@ curl -fsSL $CDN/examples/without-ssl/default.conf -o cs2-battle-bot/default.conf
 curl -fsSL $CDN/scripts/upgrade.sh -o cs2-battle-bot/upgrade.sh
 
 
+
 # Copy .env.example if .env does not exist
 if [ ! -f cs2-battle-bot/.env ]; then
     cp cs2-battle-bot/.env.example cs2-battle-bot/.env
-    sed -i "s|SECRET_KEY=.*|SECRET_KEY=$(openssl rand -hex 16)|g" cs2-battle-bot/.env
-    sed -i "s|DJANGO_SUPERUSER_PASSWORD=.*|API_KEY=$(openssl rand -hex 32)|g" cs2-battle-bot/.env
+#    sed -i "s|DJANGO_SUPERUSER_PASSWORD=.*|DJANGO_SUPERUSER_PASSWORD=$(openssl rand -hex 16)|g" cs2-battle-bot/.env
+
+    echo "Please enter your domain with http or https and port from app in docker-compose.yml example (http://example.com:8000):"
+    read API_URL
+    sed -i "s|API_URL=.*|API_URL=$API_URL|g" cs2-battle-bot/.env
+
+    # Add this api_url to CSRF_TRUSTED_ORIGINS
+    sed -i "s|CSRF_TRUSTED_ORIGINS=.*|CSRF_TRUSTED_ORIGINS=$API_URL|g" cs2-battle-bot/.env
+
+    echo "Please enter DISCORD_CLIENT_ID:"
+    read DISCORD_CLIENT_ID
+    sed -i "s|DISCORD_CLIENT_ID=.*|DISCORD_CLIENT_ID=$DISCORD_CLIENT_ID|g" cs2-battle-bot/.env
+
+    echo "Please enter DISCORD_CLIENT_SECRET:"
+    read DISCORD_CLIENT_SECRET
+    sed -i "s|DISCORD_CLIENT_SECRET=.*|DISCORD_CLIENT_SECRET=$DISCORD_CLIENT_SECRET|g" cs2-battle-bot/.env
+
+    echo "Please enter your DISCORD_BOT_TOKEN:"
+    read DISCORD_BOT_TOKEN
+    sed -i "s|DISCORD_BOT_TOKEN=.*|DISCORD_BOT_TOKEN=$DISCORD_BOT_TOKEN|g" cs2-battle-bot/.env
 fi
 
 # Merge .env and .env.production. New values will be added to .env
@@ -75,4 +94,4 @@ sort -u -t '=' -k 1,1 cs2-battle-bot/.env cs2-battle-bot/.env.example | sed '/^$
 bash cs2-battle-bot/upgrade.sh
 
 echo -e "\nCongratulations! Your CS2 Battle Bot instance is ready to use.\n"
-echo "Please visit http://$(curl -4s https://ifconfig.io):8000/admin/ to get started."
+echo "Please visit $API_URL/admin/ to get started."
