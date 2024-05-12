@@ -87,6 +87,34 @@ services:
             - 'REDIS_PASSWORD=${REDIS_PASSWORD}'
         networks:
             - cs2-battle-bot-network
+    coolify-helper:
+        image: 'ghcr.io/coollabsio/coolify-helper:latest'
+        container_name: cs2_battle_bot_coolify_helper
+        environment:
+            - 'DEBUG=${DEBUG}'
+            - 'SECRET_KEY=${SECRET_KEY}'
+            - 'DB_ENGINE=${DB_ENGINE}'
+            - 'DB_HOST=${DB_HOST}'
+            - 'DB_PORT=${DB_PORT}'
+            - 'POSTGRES_DB=${POSTGRES_DB}'
+            - 'POSTGRES_USER=${POSTGRES_USER}'
+            - 'POSTGRES_PASSWORD=${POSTGRES_PASSWORD}'
+            - 'REDIS_HOST=${REDIS_HOST}'
+            - 'REDIS_PORT=${REDIS_PORT}'
+            - 'REDIS_DB=${REDIS_DB}'
+            - 'REDIS_PASSWORD=${REDIS_PASSWORD}'
+            - 'DISCORD_CLIENT_ID=${DISCORD_CLIENT_ID}'
+            - 'DISCORD_CLIENT_SECRET=${DISCORD_CLIENT_SECRET}'
+            - 'STEAM_API_KEY=${STEAM_API_KEY}'
+            - 'CSRF_TRUSTED_ORIGINS=${CSRF_TRUSTED_ORIGINS}'
+            - 'CORS_ALLOW_ALL_ORIGINS=${CORS_ALLOW_ALL_ORIGINS}'
+            - 'SECURE_SSL_REDIRECT=${SECURE_SSL_REDIRECT}'
+            - 'SECURE_PROXY_SSL_HEADER=${SECURE_PROXY_SSL_HEADER}'
+            - 'DISCORD_BOT_TOKEN=${DISCORD_BOT_TOKEN}'
+            - 'API_URL=${API_URL}'
+            - 'API_KEY=${API_KEY}'
+        networks:
+            - cs2-battle-bot-network
 
 networks:
     cs2-battle-bot-network:
