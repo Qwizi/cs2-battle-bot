@@ -25,7 +25,7 @@ docker network create --attachable cs2-battle-bot-network 2>/dev/null
 docker compose --env-file cs2-battle-bot/.env -f cs2-battle-bot/docker-compose.yml up -d --pull always --remove-orphans --force-recreate
 
 # Run app migrations
-docker compose exec --env-file cs2-battle-bot/.env -f cs2-battle-bot/docker-compose.yml app python manage.py migrate
+docker compose --env-file cs2-battle-bot/.env -f cs2-battle-bot/docker-compose.yml exec app python manage.py migrate
 
 # Check if there are any superusers in the database
 SUPERUSER_COUNT=$(docker compose --env-file cs2-battle-bot/.env -f cs2-battle-bot/docker-compose.yml exec app python manage.py shell -c "from django.contrib.auth import get_user_model; User = get_user_model(); print(User.objects.filter(is_superuser=True).count());")
