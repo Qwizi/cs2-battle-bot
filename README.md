@@ -21,11 +21,11 @@ curl -fsSL https://raw.githubusercontent.com/Qwizi/cs2-battle-bot/master/scripts
 ```
 ## Upgrade
 ```shell
-curl -fsSL https://raw.githubusercontent.com/Qwizi/cs2-battle-bot/master/scripts/upgrade.sh | bash
+./upgrade.sh
 ```
 ## Uninstall
 ```shell
-curl -fsSL https://raw.githubusercontent.com/Qwizi/cs2-battle-bot/master/scripts/uninstall.sh | bash
+./uninstall.sh
 ```
 
 ## Showcase

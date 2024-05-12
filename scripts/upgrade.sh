@@ -10,6 +10,9 @@ curl -fsSL $CDN/examples/without-ssl/default.conf -o cs2-battle-bot/default.conf
 curl -fsSL $CDN/scripts/upgrade.sh -o cs2-battle-bot/upgrade.sh
 curl -fsSL $CDN/scripts/uninstall.sh -o cs2-battle-bot/uninstall.sh
 
+chmod +x cs2-battle-bot/upgrade.sh
+chmod +x cs2-battle-bot/uninstall.sh
+
 
 # Check if SECRET_KEY is empty in cs2-battle-bot/.env
 if grep -q "SECRET_KEY=django-insecure" cs2-battle-bot/.env; then
@@ -32,15 +35,10 @@ SUPERUSER_COUNT=$(docker compose --env-file cs2-battle-bot/.env -f cs2-battle-bo
 
 # Create superuser if there are no superusers in the database
 if [ "$SUPERUSER_COUNT" = "0" ]; then
-    # IF DJANGO_SUPERUSER_PASSWORD is empty, generate a random password
-    if grep -q "DJANGO_SUPERUSER_PASSWORD=$" cs2-battle-bot/.env; then
-        DJANGO_SUPERUSER_PASSWORD=$(openssl rand -hex 16)
-        sed -i "s|DJANGO_SUPERUSER_PASSWORD=.*|DJANGO_SUPERUSER_PASSWORD=$DJANGO_SUPERUSER_PASSWORD|g" cs2-battle-bot/.env
-    fi
-    # get the password from .env
-    DJANGO_SUPERUSER_PASSWORD=$(grep "DJANGO_SUPERUSER_PASSWORD" cs2-battle-bot/.env | cut -d '=' -f 2)
-    docker compose --env-file cs2-battle-bot/.env -f cs2-battle-bot/docker-compose.yml exec -T app python manage.py shell -c "from django.contrib.auth import get_user_model; User = get_user_model(); User.objects.create_superuser('admin', '$DJANGO_SUPERUSER_PASSWORD');"
-    echo "Superuser admin created with password $DJANGO_SUPERUSER_PASSWORD"
+    SUPERUSER_PASSWORD=$(openssl rand -hex 16)
+    docker compose --env-file cs2-battle-bot/.env -f cs2-battle-bot/docker-compose.yml exec -T app python manage.py shell -c "from django.contrib.auth import get_user_model; User = get_user_model(); User.objects.create_superuser(username='admin', password='$SUPERUSER_PASSWORD', email=None);"
+
+    echo "Superuser admin created with password $SUPERUSER_PASSWORD"
     echo "Please change the password after the first login."
 fi
 
