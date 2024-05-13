@@ -1,0 +1,21 @@
+name: Publish Backend Docker image
+
+on:
+  workflow_run:
+    workflows: ["Publish Backend Docker image"]
+    types:
+      - completed
+  workflow_dispatch: 
+
+
+jobs:
+  deploy_coolify:
+    name: Deploy to coolify by webhook
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v4.1.1
+      - name: Send Webhook
+        run: |
+         curl --request GET --url ${{secrets.COOLIFY_WEBHOOK}} --header 'Authorization: Bearer ${{ secrets.COOLIFY_API_KEY }}'
