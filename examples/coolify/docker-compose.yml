@@ -30,6 +30,7 @@ services:
             - 'DISCORD_BOT_TOKEN=${DISCORD_BOT_TOKEN}'
             - 'API_URL=${API_URL}'
             - 'API_KEY=${API_KEY}'
+            - 'DEPLOY_COOLIFY=${DEPLOY_COOLIFY}'
         restart: unless-stopped
         depends_on:
             - db
@@ -85,6 +86,7 @@ services:
             - 'REDIS_PORT=${REDIS_PORT}'
             - 'REDIS_DB=${REDIS_DB}'
             - 'REDIS_PASSWORD=${REDIS_PASSWORD}'
+            - 'DEPLOY_COOLIFY=${DEPLOY_COOLIFY}'
         networks:
             - cs2-battle-bot-network
     coolify-helper:
