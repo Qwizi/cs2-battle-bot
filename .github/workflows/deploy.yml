@@ -2,10 +2,10 @@ name: Publish Backend Docker image
 
 on:
   workflow_run:
-    workflows: ["Publish Backend Docker image"]
+    workflows: ["docker.yml"]
     types:
       - completed
-  workflow_dispatch: 
+  workflow_dispatch:
 
 
 jobs:
