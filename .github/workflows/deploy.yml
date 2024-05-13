@@ -1,4 +1,4 @@
-name: Publish Backend Docker image
+name: Deploy to Coolify
 
 on:
   workflow_run:
