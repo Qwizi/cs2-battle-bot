@@ -64,9 +64,6 @@ curl -fsSL $CDN/scripts/uninstall.sh -o cs2-battle-bot/uninstall.sh
 chmod +x cs2-battle-bot/upgrade.sh
 chmod +x cs2-battle-bot/uninstall.sh
 
-
-
-
 # Copy .env.example if .env does not exist
 if [ ! -f cs2-battle-bot/.env ]; then
     cp cs2-battle-bot/.env.example cs2-battle-bot/.env
