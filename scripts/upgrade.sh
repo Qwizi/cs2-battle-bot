@@ -7,13 +7,7 @@ CDN="https://raw.githubusercontent.com/Qwizi/cs2-battle-bot/master"
 # If DEPLOY_COOLIFy is true, then use coolify files
 if [ "$DEPLOY_COOLIFY" = "True" ]; then
     echo "Upgrading on Coolify"
-    curl -fsSL $CDN/examples/without-ssl/.env.example -o .env.example
-    curl -fsSL $CDN/examples/without-ssl/default.conf -o default.conf
-    curl -fsSL $CDN/scripts/upgrade.sh -o upgrade.sh
-    curl -fsSL $CDN/scripts/uninstall.sh -o uninstall.sh
-
     chmod +x upgrade.sh
-    chmod +x uninstall.sh
 
 
     # Get app container name

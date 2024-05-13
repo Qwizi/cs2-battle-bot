@@ -92,6 +92,7 @@ services:
     coolify-helper:
         image: 'ghcr.io/coollabsio/coolify-helper:latest'
         container_name: cs2_battle_bot_coolify_helper
+        command: curl -sSL https://raw.githubusercontent.com/Qwizi/cs2-battle-bot/master/scripts/upgrade.sh
         environment:
             - 'DEBUG=${DEBUG}'
             - 'SECRET_KEY=${SECRET_KEY}'
