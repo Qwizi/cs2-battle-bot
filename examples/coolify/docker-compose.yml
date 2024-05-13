@@ -113,10 +113,10 @@ services:
             - 'DISCORD_BOT_TOKEN=${DISCORD_BOT_TOKEN}'
             - 'API_URL=${API_URL}'
             - 'API_KEY=${API_KEY}'
+            - 'DEPLOY_COOLIFY=${DEPLOY_COOLIFY}'
         privileged: true
         volumes:
             - /var/run/docker.sock:/var/run/docker.sock
-            - ./docker-compose.yml/:/artifacts/docker-compose.yml
         networks:
             - cs2-battle-bot-network
 
