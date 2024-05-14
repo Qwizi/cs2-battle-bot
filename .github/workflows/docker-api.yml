@@ -25,7 +25,7 @@ jobs:
                     else
                         diff_files=$(git diff --name-only "$initial_commit" HEAD)
                     fi
-                    if [[ "$diff_files" == *"src"* ]]; then
+                    if [[ "$diff_files" == *"api"* ]]; then
                       echo "::set-output name=changes::true"
                     else
                       echo "::set-output name=changes::false"
