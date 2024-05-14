@@ -184,3 +184,5 @@ API_KEY = os.environ.get("API_KEY", "key")
 AUTH_USER_MODEL = "accounts.User"  # new
 
 SWAGGER_SETTINGS = {"SECURITY_DEFINITIONS": {"Basic": {"type": "basic"}}}
+
+TEST = 1
