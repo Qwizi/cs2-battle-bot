@@ -19,8 +19,10 @@ jobs:
                 id: extract_metadata
                 run: |
                     VERSION=$(awk -F ' = ' '/version =/ {gsub(/"/, "", $2); print $2}' api/pyproject.toml)
+                    BOT_VERSION=$(awk -F ' = ' '/version =/ {gsub(/"/, "", $2); print $2}' src/pyproject.toml)
                     LABELS="version=$VERSION,latest"
                     echo "::set-output name=version::$VERSION"
+                    echo "::set-output name=bot_version::$BOT_VERSION"
                     echo "::set-output name=labels::$LABELS"
                 shell: /usr/bin/bash -e {0}
             -   name: Log in to Docker Hub
@@ -43,3 +45,18 @@ jobs:
                 uses: Ilshidur/action-discord@master
                 with:
                     args: '${{ github.repository }} successfully built and pushed Docker images qwizii/cs2-battle-bot-api-test:${{ steps.extract_metadata.outputs.version }} and qwizii/cs2-battle-bot-api-test:latest.'
+            -   name: Release New Version
+                uses: softprops/action-gh-release@v1
+                with:
+                    name: Build-${{ env.BUILD_NUMBER }}
+                    tag_name: Build-${{ env.BUILD_NUMBER }}
+                    token: ${{ secrets.RELEASE_GIT_TOKEN }}
+                    body: |
+                        API Version: ${{ steps.extract_metadata.outputs.version }}
+                        Bot Version: ${{ steps.extract_metadata.outputs.bot_version }}
+            -   name: Discord notification
+                env:
+                    DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+                uses: Ilshidur/action-discord@master
+                with:
+                    args: 'Successfuly released new version of ${{github.repository}}. API Version: ${{ steps.extract_metadata.outputs.version }}, Bot Version: ${{ steps.extract_metadata.outputs.bot_version }}'
