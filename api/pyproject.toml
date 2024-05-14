@@ -1,0 +1,39 @@
+[tool.poetry]
+name = "cs2-battle-bot-api"
+version = "0.0.36"
+description = ""
+authors = ["Adrian Ciolek <ciolek.adrian@protonmail.com>"]
+readme = "README.md"
+
+packages = [
+    { include = "src/"},
+]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+django = "^5.0.6"
+httpx = "^0.27.0"
+psycopg2-binary = "^2.9.9"
+django-prefix-id = "^1.0.0"
+steam = "^1.4.4"
+django-redis = "^5.4.0"
+djangorestframework = "^3.14.0"
+djangorestframework-api-key = "^3.0.0"
+rcon = "^2.4.6"
+gunicorn = "^22.0.0"
+django-oauth-toolkit = "^2.3.0"
+drf-spectacular = "^0.27.2"
+pytest-django = "^4.8.0"
+django-filter = "^24.2"
+toml = "^0.10.2"
+pytest-mock = "^3.14.0"
+django-cors-headers = "^4.3.1"
+drf-standardized-errors = {extras = ["openapi"], version = "^0.13.0"}
+pillow = "^10.3.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "src.cs2_battle_bot.test_settings"

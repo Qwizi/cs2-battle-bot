@@ -1,0 +1,90 @@
+[
+  {
+    "model": "matches.map",
+    "pk": "map_2EJY5y3zAn8dZGtVjm3Wg9",
+    "fields": {
+      "name": "Dust",
+      "tag": "de_dust2",
+      "guild": null,
+      "created_at": "2024-05-13T14:43:28.329Z",
+      "updated_at": "2024-05-13T14:43:28.329Z"
+    }
+  },
+  {
+    "model": "matches.map",
+    "pk": "map_4135blNI8T02nvPpM5C5MS",
+    "fields": {
+      "name": "Anubis",
+      "tag": "de_anubis",
+      "guild": null,
+      "created_at": "2024-03-01T16:02:06.657Z",
+      "updated_at": "2024-03-01T16:02:06.657Z"
+    }
+  },
+  {
+    "model": "matches.map",
+    "pk": "map_4SOAk3wrVBG0hqQRQufZge",
+    "fields": {
+      "name": "Overpass",
+      "tag": "de_overpass",
+      "guild": null,
+      "created_at": "2024-03-01T16:02:35.622Z",
+      "updated_at": "2024-03-01T16:02:35.622Z"
+    }
+  },
+  {
+    "model": "matches.map",
+    "pk": "map_54VaFWzthtodBspc9nVrUR",
+    "fields": {
+      "name": "Nuke",
+      "tag": "de_nuke",
+      "guild": null,
+      "created_at": "2024-03-01T16:01:53.890Z",
+      "updated_at": "2024-03-01T16:01:53.890Z"
+    }
+  },
+  {
+    "model": "matches.map",
+    "pk": "map_5VCgNHvNPQSElZWJKvFTSO",
+    "fields": {
+      "name": "Mirage",
+      "tag": "de_mirage",
+      "guild": null,
+      "created_at": "2024-03-01T16:01:10.978Z",
+      "updated_at": "2024-03-01T16:01:10.978Z"
+    }
+  },
+  {
+    "model": "matches.map",
+    "pk": "map_7CYPuMLIbpmaQVwFdVzrqQ",
+    "fields": {
+      "name": "Ancient",
+      "tag": "de_ancient",
+      "guild": null,
+      "created_at": "2024-03-01T16:02:00.487Z",
+      "updated_at": "2024-03-01T16:02:00.487Z"
+    }
+  },
+  {
+    "model": "matches.map",
+    "pk": "map_Nmw5URasLwmbhObNS6we6",
+    "fields": {
+      "name": "Inferno",
+      "tag": "de_inferno",
+      "guild": null,
+      "created_at": "2024-03-01T16:01:43.622Z",
+      "updated_at": "2024-03-01T16:01:43.622Z"
+    }
+  },
+  {
+    "model": "matches.map",
+    "pk": "map_PiNxxFwdGiQ0cWgr5tTat",
+    "fields": {
+      "name": "Vertigo",
+      "tag": "de_vertigo",
+      "guild": null,
+      "created_at": "2024-03-01T16:01:23.796Z",
+      "updated_at": "2024-03-01T16:01:23.796Z"
+    }
+  }
+]

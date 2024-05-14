@@ -1,0 +1,57 @@
+[
+  {
+    "model": "matches.mappool",
+    "pk": "map_pool_4oexIKeclCULWwHq6r37Mc",
+    "fields": {
+      "name": "Competive Active Duty",
+      "guild": null,
+      "created_at": "2024-05-13T14:45:25.930Z",
+      "updated_at": "2024-05-13T14:45:25.930Z",
+      "maps": [
+        "map_2EJY5y3zAn8dZGtVjm3Wg9",
+        "map_4135blNI8T02nvPpM5C5MS",
+        "map_54VaFWzthtodBspc9nVrUR",
+        "map_5VCgNHvNPQSElZWJKvFTSO",
+        "map_7CYPuMLIbpmaQVwFdVzrqQ",
+        "map_Nmw5URasLwmbhObNS6we6",
+        "map_PiNxxFwdGiQ0cWgr5tTat"
+      ]
+    }
+  },
+  {
+    "model": "matches.mappool",
+    "pk": "map_pool_6ILXh3tPg1CUl69nc5QCyI",
+    "fields": {
+      "name": "Wingman Active Duty",
+      "guild": null,
+      "created_at": "2024-05-13T14:46:01.562Z",
+      "updated_at": "2024-05-13T14:46:01.562Z",
+      "maps": [
+        "map_4SOAk3wrVBG0hqQRQufZge",
+        "map_54VaFWzthtodBspc9nVrUR",
+        "map_Nmw5URasLwmbhObNS6we6",
+        "map_PiNxxFwdGiQ0cWgr5tTat"
+      ]
+    }
+  },
+  {
+    "model": "matches.mappool",
+    "pk": "map_pool_7t9bnBSeRFpF47cS20okFl",
+    "fields": {
+      "name": "Custom Map Pool",
+      "guild": null,
+      "created_at": "2024-05-13T14:50:57.626Z",
+      "updated_at": "2024-05-13T14:50:57.626Z",
+      "maps": [
+        "map_2EJY5y3zAn8dZGtVjm3Wg9",
+        "map_4135blNI8T02nvPpM5C5MS",
+        "map_4SOAk3wrVBG0hqQRQufZge",
+        "map_54VaFWzthtodBspc9nVrUR",
+        "map_5VCgNHvNPQSElZWJKvFTSO",
+        "map_7CYPuMLIbpmaQVwFdVzrqQ",
+        "map_Nmw5URasLwmbhObNS6we6",
+        "map_PiNxxFwdGiQ0cWgr5tTat"
+      ]
+    }
+  }
+]
