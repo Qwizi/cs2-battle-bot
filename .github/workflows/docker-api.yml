@@ -1,10 +1,11 @@
 name: Publish API Docker Image
 
-on: workflow_dispatch
-#    workflow_run:
-#        workflows: ["generate-schema.yml"]
-#        types:
-#            - completed
+on:
+    workflow_run:
+        workflows: ["generate-schema.yml"]
+        types:
+            - completed
+    workflow_dispatch:
 
 jobs:
     push_to_registry:
