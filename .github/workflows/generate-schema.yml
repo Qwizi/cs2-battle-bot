@@ -48,7 +48,7 @@ jobs:
                     API_VERSION=$(awk -F ' = ' '/version =/ {gsub(/"/, "", $2); print $2}' ./api/pyproject.toml)
                     BOT_VERSION=$(awk -F ' = ' '/version =/ {gsub(/"/, "", $2); print $2}' ./src/pyproject.toml)
                     echo "::set-output name=api_version::$API_VERSION"
-                    echo "::set-output name=bot_version::$BOT_VERSION
+                    echo "::set-output name=bot_version::$BOT_VERSION"
                 shell: /usr/bin/bash -e {0}
             -   name: Discord notification
                 env:
