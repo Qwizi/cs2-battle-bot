@@ -1,12 +1,10 @@
 name: Publish API Docker Image
 
 on:
-    push:
-        branches:
-            - master
-            - monorepo
-        paths:
-            - 'api/**'
+    workflow_run:
+        workflows: ["generate-schema.yml"]
+        types:
+            - completed
 
 jobs:
     push_to_registry:

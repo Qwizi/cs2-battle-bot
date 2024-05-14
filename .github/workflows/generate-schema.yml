@@ -24,6 +24,7 @@ jobs:
                 with:
                     python-version: 3.11
             -   name: "Install the project"
+                working-directory: api
                 run: "poetry install"
             -   name: Install jq
                 run: |
@@ -49,8 +50,7 @@ jobs:
                     fi
             -   name: Extract bot version from pyproject.toml
                 run: |
-                    cd src
-                    BOT_VERSION=$(jq -r .info.version openapi.json)
+                    BOT_VERSION=$(awk -F ' = ' '/version =/ {gsub(/"/, "", $2); print $2}' src/pyproject.toml)
                     echo "BOT_RELEASE_VERSION=$BOT_VERSION" >> $GITHUB_ENV
             -   name: Discord notification
                 env:
