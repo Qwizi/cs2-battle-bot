@@ -26,17 +26,11 @@ jobs:
             -   name: "Install the project"
                 working-directory: api
                 run: "poetry install"
-            -   name: Install jq
-                run: |
-                    sudo apt-get update
-                    sudo apt-get install -y jq
             -   name: Generate API schema and extract version
                 run: |
                     cd api
                     poetry run python src/manage.py spectacular --file openapi.json --validate --format openapi-json
                     echo "Schema generated"
-                    API_VERSION=$(jq -r .info.version openapi.json)
-                    echo "API_RELEASE_VERSION=$API_VERSION" >> $GITHUB_ENV
             -   name: Commit and push changes
                 run: |
                     git config --global user.email "github@actions.com"
@@ -48,9 +42,13 @@ jobs:
                     else
                         echo "No changes to commit"
                     fi
-            -   name: Extract bot version from pyproject.toml
+            -   name: Extract versions from pyproject.toml
                 run: |
-                    BOT_VERSION=$(awk -F ' = ' '/version =/ {gsub(/"/, "", $2); print $2}' src/pyproject.toml)
+                    cd api
+                    API_VERSION=$(awk -F ' = ' '/version =/ {gsub(/"/, "", $2); print $2}' pyproject.toml)
+                    echo "API_RELEASE_VERSION=$API_VERSION" >> $GITHUB_ENV
+                    cd ../src
+                    BOT_VERSION=$(awk -F ' = ' '/version =/ {gsub(/"/, "", $2); print $2}' pyproject.toml)
                     echo "BOT_RELEASE_VERSION=$BOT_VERSION" >> $GITHUB_ENV
             -   name: Discord notification
                 env:
