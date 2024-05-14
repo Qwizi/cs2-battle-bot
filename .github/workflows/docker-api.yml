@@ -18,7 +18,14 @@ jobs:
             -   name: Check for changes
                 id: check_changes
                 run: |
-                    if [[ $(git diff --name-only "" ${{ github.sha }}) == *"src"* ]]; then
+                    initial_commit=$(git rev-list --max-parents=0 HEAD)
+
+                    if [ -z "$initial_commit" ]; then
+                        diff_files=$(git diff --name-only HEAD)
+                    else
+                        diff_files=$(git diff --name-only "$initial_commit" HEAD)
+                    fi
+                    if [[ "$diff_files" == *"src"* ]]; then
                       echo "::set-output name=changes::true"
                     else
                       echo "::set-output name=changes::false"

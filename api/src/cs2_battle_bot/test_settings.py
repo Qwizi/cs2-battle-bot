@@ -185,4 +185,4 @@ AUTH_USER_MODEL = "accounts.User"  # new
 
 SWAGGER_SETTINGS = {"SECURITY_DEFINITIONS": {"Basic": {"type": "basic"}}}
 
-TEST = 2
+TEST = 3
