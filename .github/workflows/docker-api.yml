@@ -15,27 +15,8 @@ jobs:
         steps:
             -   name: Check out the repo
                 uses: actions/checkout@v4.1.1
-            -   name: Check for changes
-                id: check_changes
-                run: |
-                    last_commit=$(git rev-parse HEAD)
-                    previous_commit=$(git rev-parse HEAD^)
-                    
-                    if [ "$last_commit" != "$previous_commit" ]; then
-                        diff_files=$(git diff --name-only "$previous_commit" "$last_commit")
-                    else
-                        # If there's no previous commit, compare against an empty tree
-                        diff_files=$(git diff --name-only "$last_commit" $(git hash-object -t tree /dev/null))
-                    fi
-                    
-                    if [[ "$diff_files" == *"api"* ]]; then
-                        echo "changes=true" >> $GITHUB_STATE
-                    else
-                       echo "changes=false" >> $GITHUB_STATE
-                    fi
 
             -   name: Extract version from pyproject.toml
-                if: steps.check_changes.outputs.changes == 'true'
                 id: extract_metadata
                 run: |
                     VERSION=$(awk -F ' = ' '/version =/ {gsub(/"/, "", $2); print $2}' api/pyproject.toml)
@@ -44,7 +25,6 @@ jobs:
                     echo "labels=$LABELS" >> $GITHUB_OUTPUT
 
             -   name: Log in to Docker Hub
-                if: steps.check_changes.outputs.changes == 'true'
                 uses: docker/login-action@v3.0.0
                 with:
                     username: ${{ secrets.DOCKER_USERNAME }}
@@ -52,7 +32,6 @@ jobs:
 
             -   name: Build and push Docker image
                 uses: docker/build-push-action@v5.1.0
-                if: steps.check_changes.outputs.changes == 'true'
                 with:
                     context: ./api
                     file: ./api/Dockerfile
