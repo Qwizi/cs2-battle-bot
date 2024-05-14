@@ -32,7 +32,7 @@ jobs:
                     sudo apt-get install -y jq
             -   name: Generate API schema and extract version
                 run: |
-                    cd api/src/ && poetry run python manage.py spectacular --file openapi.json --validate --format openapi-json
+                    poetry run python api/src/manage.py spectacular --file openapi.json --validate --format openapi-json
                     echo "Schema generated"
                     API_VERSION=$(jq -r .info.version openapi.json)
                     echo "API_RELEASE_VERSION=$API_VERSION" >> $GITHUB_ENV
