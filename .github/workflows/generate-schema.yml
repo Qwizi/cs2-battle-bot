@@ -30,13 +30,13 @@ jobs:
                 run: |
                     sudo apt-get update
                     sudo apt-get install -y jq
-            -   name: Generate Schema
+            -   name: Generate API schema and extract version
                 run: |
-                    cd api/src
+                    cd api
                     poetry run python manage.py spectacular --file openapi.json --validate --format openapi-json
                     echo "Schema generated"
                     API_VERSION=$(jq -r .info.version openapi.json)
-                    echo "API_RELEASE_VERSION=API_VERSION" >> $GITHUB_ENV
+                    echo "API_RELEASE_VERSION=$API_VERSION" >> $GITHUB_ENV
             -   name: Commit and push changes
                 run: |
                     git config --global user.email "github@actions.com"
