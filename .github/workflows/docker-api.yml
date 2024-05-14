@@ -5,6 +5,7 @@ on:
         workflows: ["generate-schema.yml"]
         types:
             - completed
+    workflow_dispatch:
 
 jobs:
     push_to_registry:
