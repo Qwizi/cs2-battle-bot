@@ -45,8 +45,8 @@ jobs:
             -   name: Extract versions from pyproject.toml
                 id: extract_versions
                 run: |
-                    API_VERSION=$(awk -F ' = ' '/version =/ {gsub(/"/, "", $2); print $2}' api/pyproject.toml)
-                    BOT_VERSION=$(awk -F ' = ' '/version =/ {gsub(/"/, "", $2); print $2}' src/pyproject.toml)
+                    API_VERSION=$(awk -F ' = ' '/version =/ {gsub(/"/, "", $2); print $2}' ./api/pyproject.toml)
+                    BOT_VERSION=$(awk -F ' = ' '/version =/ {gsub(/"/, "", $2); print $2}' ./src/pyproject.toml)
                     echo "::set-output name=api_version::$API_VERSION"
                     echo "::set-output name=bot_version::$BOT_VERSION
                 shell: /usr/bin/bash -e {0}
