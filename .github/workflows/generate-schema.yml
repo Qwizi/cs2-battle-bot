@@ -1,0 +1,79 @@
+name: Generate Client
+
+on:
+    workflow_run:
+        workflows: ["docker-api.yml"]
+        types:
+            - completed
+
+jobs:
+    generate-schema:
+        runs-on: ubuntu-latest
+
+        steps:
+            -   name: Checkout repository
+                uses: actions/checkout@v4
+                with:
+                    token: ${{ secrets.RELEASE_GIT_TOKEN }}
+            -   name: "Install Poetry"
+                run: "pipx install poetry"
+            -   name: Set up Python ${{matrix.python-version}}
+                uses: "actions/setup-python@v5"
+                with:
+                    python-version: 3.11
+            -   name: "Install the project"
+                run: "poetry install"
+            -   name: Install jq
+                run: |
+                    sudo apt-get update
+                    sudo apt-get install -y jq
+            -   name: Generate Schema
+                run: |
+                    cd api/src
+                    poetry run python manage.py spectacular --file openapi.json --validate --format openapi-json
+                    echo "Schema generated"
+                    API_VERSION=$(jq -r .info.version openapi.json)
+                    echo "API_RELEASE_VERSION=API_VERSION" >> $GITHUB_ENV
+            -   name: Commit and push changes
+                run: |
+                    git config --global user.email "github@actions.com"
+                    git config --global user.name "GitHub Actions "
+                    git add .
+                    if [[ -n "$(git diff --cached)" ]]; then
+                        git commit -m "Generate OpenAPI schema [skip ci]"
+                        git push
+                    else
+                        echo "No changes to commit"
+                    fi
+            -   name: Extract bot version from pyproject.toml
+                run: |
+                    cd src
+                    BOT_VERSION=$(jq -r .info.version openapi.json)
+                    echo "BOT_RELEASE_VERSION=$BOT_VERSION" >> $GITHUB_ENV
+            -   name: Discord notification
+                env:
+                        DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+                uses: Ilshidur/action-discord@master
+                with:
+                    args: '${{ EVENT_PAYLOAD.repository.full_name }} successfully generated openapi schema.'
+#            -   name: Trigger Client Generation
+#                uses: peter-evans/repository-dispatch@v2
+#                with:
+#                    token: ${{ secrets.RELEASE_GIT_TOKEN }}
+#                    repository: Qwizi/cs2-battle-bot-api-client
+#                    event-type: generate-client
+            -   name: Release New Version
+                uses: softprops/action-gh-release@v1
+                with:
+                    name: Build-${{ github.run_id }}
+                    tag_name: Build-${{ github.run_id }}
+                    token: ${{ secrets.RELEASE_GIT_TOKEN }}
+                    body: |
+                        API Version: ${{ env.API_RELEASE_VERSION }}
+                        Bot Version: ${{ env.BOT_RELEASE_VERSION }}
+            -   name: Discord notification
+                env:
+                    DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+                uses: Ilshidur/action-discord@master
+                with:
+                    args: 'Successfuly released new version of ${{ EVENT_PAYLOAD.repository.full_name }}. API Version: ${{ env.API_RELEASE_VERSION }}, Bot Version: ${{ env.BOT_RELEASE_VERSION }}.'

@@ -3,6 +3,7 @@ name: Publish API Docker Image
 on:
     push:
         branches:
+            - master
             - monorepo
         paths:
             - 'api/**'
@@ -36,5 +37,11 @@ jobs:
                     context: ./api
                     file: ./api/Dockerfile
                     push: true
-                    tags: ${{ github.repository }}-api-test:${{ steps.extract_metadata.outputs.version }}, ${{ github.repository }}:latest
+                    tags: qwizii/cs2-battle-bot-api-test:${{ steps.extract_metadata.outputs.version }}, qwizii/cs2-battle-bot-api-test:latest
                     labels: ${{ steps.extract_metadata.outputs.labels }}
+            -   name: Discord notification
+                env:
+                    DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+                uses: Ilshidur/action-discord@master
+                with:
+                    args: '${{ EVENT_PAYLOAD.repository.full_name }} successfully built and pushed Docker images qwizii/cs2-battle-bot-api-test:${{ steps.extract_metadata.outputs.version }} and qwizii/cs2-battle-bot-api-test:latest.'
