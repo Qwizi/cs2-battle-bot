@@ -43,11 +43,12 @@ jobs:
                         echo "No changes to commit"
                     fi
             -   name: Extract versions from pyproject.toml
+                id: extract_versions
                 run: |
                     API_VERSION=$(awk -F ' = ' '/version =/ {gsub(/"/, "", $2); print $2}' api/pyproject.toml)
                     BOT_VERSION=$(awk -F ' = ' '/version =/ {gsub(/"/, "", $2); print $2}' src/pyproject.toml)
-                    echo "API_RELEASE_VERSION=$API_VERSION" >> $GITHUB_ENV
-                    echo "BOT_RELEASE_VERSION=$BOT_VERSION" >> $GITHUB_ENV
+                    echo "::set-output name=api_version::$API_VERSION"
+                    echo "::set-output name=bot_version::$BOT_VERSION
                 shell: /usr/bin/bash -e {0}
             -   name: Discord notification
                 env:
@@ -68,8 +69,8 @@ jobs:
                     tag_name: Build-${{ github.run_id }}
                     token: ${{ secrets.RELEASE_GIT_TOKEN }}
                     body: |
-                        API Version: ${{ env.API_RELEASE_VERSION }}
-                        Bot Version: ${{ env.BOT_RELEASE_VERSION }}
+                        API Version: ${{ steps.extract_metadata.outputs.api_version }}
+                        Bot Version: ${{ steps.extract_metadata.outputs.bot_version }}
             -   name: Discord notification
                 env:
                     DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
