@@ -1,11 +1,10 @@
 name: Publish Bot Docker Image
 
 on:
-    push:
-        branches:
-            - monorepo
-        paths:
-            - 'src/**'
+    workflow_run:
+        workflows: ["generate-schema.yml"]
+        types:
+            - completed
 
 jobs:
     push_to_registry:

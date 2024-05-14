@@ -1,10 +1,12 @@
 name: Generate Client
 
 on:
-    workflow_run:
-        workflows: ["docker-api.yml"]
-        types:
-            - completed
+    push:
+        branches:
+            - master
+            - monorepo
+        paths:
+            - 'api/**'
 
 jobs:
     generate-schema:
