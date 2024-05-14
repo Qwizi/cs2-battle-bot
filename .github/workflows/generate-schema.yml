@@ -44,12 +44,11 @@ jobs:
                     fi
             -   name: Extract versions from pyproject.toml
                 run: |
-                    cd api
-                    API_VERSION=$(awk -F ' = ' '/version =/ {gsub(/"/, "", $2); print $2}' pyproject.toml)
+                    API_VERSION=$(awk -F ' = ' '/version =/ {gsub(/"/, "", $2); print $2}' api/pyproject.toml)
+                    BOT_VERSION=$(awk -F ' = ' '/version =/ {gsub(/"/, "", $2); print $2}' src/pyproject.toml)
                     echo "API_RELEASE_VERSION=$API_VERSION" >> $GITHUB_ENV
-                    cd ../src
-                    BOT_VERSION=$(awk -F ' = ' '/version =/ {gsub(/"/, "", $2); print $2}' pyproject.toml)
                     echo "BOT_RELEASE_VERSION=$BOT_VERSION" >> $GITHUB_ENV
+                shell: /usr/bin/bash -e {0}
             -   name: Discord notification
                 env:
                         DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
