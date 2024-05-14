@@ -21,9 +21,9 @@ jobs:
                 run: |
                     VERSION=$(awk -F ' = ' '/version =/ {gsub(/"/, "", $2); print $2}' api/pyproject.toml)
                     LABELS="version=$VERSION,latest"
-                    echo "version=$VERSION" >> $GITHUB_OUTPUT
-                    echo "labels=$LABELS" >> $GITHUB_OUTPUT
-
+                    echo "::set-output name=version::$VERSION"
+                    echo "::set-output name=labels::$LABELS"
+                shell: /usr/bin/bash -e {0}
             -   name: Log in to Docker Hub
                 uses: docker/login-action@v3.0.0
                 with:
