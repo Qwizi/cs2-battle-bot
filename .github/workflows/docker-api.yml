@@ -44,4 +44,4 @@ jobs:
                     DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
                 uses: Ilshidur/action-discord@master
                 with:
-                    args: '${{ EVENT_PAYLOAD.repository.full_name }} successfully built and pushed Docker images qwizii/cs2-battle-bot-api-test:${{ steps.extract_metadata.outputs.version }} and qwizii/cs2-battle-bot-api-test:latest.'
+                    args: '${{ github.repository }} successfully built and pushed Docker images qwizii/cs2-battle-bot-api-test:${{ steps.extract_metadata.outputs.version }} and qwizii/cs2-battle-bot-api-test:latest.'
