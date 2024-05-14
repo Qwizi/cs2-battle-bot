@@ -18,17 +18,20 @@ jobs:
             -   name: Check for changes
                 id: check_changes
                 run: |
-                    initial_commit=$(git rev-list --max-parents=0 HEAD)
-
-                    if [ -z "$initial_commit" ]; then
-                        diff_files=$(git diff --name-only HEAD)
+                    last_commit=$(git rev-parse HEAD)
+                    previous_commit=$(git rev-parse HEAD^)
+                    
+                    if [ "$last_commit" != "$previous_commit" ]; then
+                        diff_files=$(git diff --name-only "$previous_commit" "$last_commit")
                     else
-                        diff_files=$(git diff --name-only "$initial_commit" HEAD)
+                        # If there's no previous commit, compare against an empty tree
+                        diff_files=$(git diff --name-only "$last_commit" $(git hash-object -t tree /dev/null))
                     fi
+                    
                     if [[ "$diff_files" == *"api"* ]]; then
-                      echo "::set-output name=changes::true"
+                        echo "changes=true" >> $GITHUB_STATE
                     else
-                      echo "::set-output name=changes::false"
+                       echo "changes=false" >> $GITHUB_STATE
                     fi
 
             -   name: Extract version from pyproject.toml
@@ -37,8 +40,8 @@ jobs:
                 run: |
                     VERSION=$(awk -F ' = ' '/version =/ {gsub(/"/, "", $2); print $2}' api/pyproject.toml)
                     LABELS="version=$VERSION,latest"
-                    echo "::set-output name=version::$VERSION"
-                    echo "::set-output name=labels::$LABELS"
+                    echo "version=$VERSION" >> $GITHUB_OUTPUT
+                    echo "labels=$LABELS" >> $GITHUB_OUTPUT
 
             -   name: Log in to Docker Hub
                 if: steps.check_changes.outputs.changes == 'true'
