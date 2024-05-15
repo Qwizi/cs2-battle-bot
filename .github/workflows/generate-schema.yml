@@ -4,7 +4,6 @@ on:
     push:
         branches:
             - master
-            - monorepo
         paths:
             - 'api/**'
 
@@ -49,9 +48,9 @@ jobs:
                 uses: Ilshidur/action-discord@master
                 with:
                     args: '${{ github.repository }} successfully generated openapi schema.'
-#            -   name: Trigger Client Generation
-#                uses: peter-evans/repository-dispatch@v2
-#                with:
-#                    token: ${{ secrets.RELEASE_GIT_TOKEN }}
-#                    repository: Qwizi/cs2-battle-bot-api-client
-#                    event-type: generate-client
+            -   name: Trigger Client Generation
+                uses: peter-evans/repository-dispatch@v2
+                with:
+                    token: ${{ secrets.RELEASE_GIT_TOKEN }}
+                    repository: Qwizi/cs2-battle-bot-api-client
+                    event-type: generate-client
