@@ -15,7 +15,6 @@ jobs:
         steps:
             -   name: Check out the repo
                 uses: actions/checkout@v4.1.1
-
             -   name: Extract version from pyproject.toml
                 id: extract_metadata
                 run: |

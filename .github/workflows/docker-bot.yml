@@ -1,11 +1,12 @@
 name: Publish Bot Docker Image
 
 on:
-    workflow_run:
-        workflows: ["generate-schema.yml"]
-        types:
-            - completed
-
+    push:
+        branches:
+            - master
+            - monorepo
+        paths:
+            - 'src/**'
 jobs:
     push_to_registry:
         name: Push Docker image to Docker Hub
@@ -14,24 +15,18 @@ jobs:
         steps:
             -   name: Check out the repo
                 uses: actions/checkout@v4.1.1
-            -   name: Check for changes
-                id: check_changes
+            -   name: Extract version from pyproject.toml
+                id: extract_metadata
                 run: |
-                    if [[ $(git diff --name-only ${{ github.event.before }} ${{ github.sha }}) == *"src"* ]]; then
-                      echo "::set-output name=changes::true"
-                    else
-                      echo "::set-output name=changes::false"
-                    fi
-
-            -   name: Extract metadata (tags, labels) for Docker
-                if: steps.check_changes.outputs.changes == 'true'
-                id: meta
-                uses: docker/metadata-action@v5.5.1
-                with:
-                    images: qwizii/cs2-battle-bot-test
+                    VERSION=$(awk -F ' = ' '/version =/ {gsub(/"/, "", $2); print $2}' api/pyproject.toml)
+                    BOT_VERSION=$(awk -F ' = ' '/version =/ {gsub(/"/, "", $2); print $2}' src/pyproject.toml)
+                    LABELS="version=$VERSION,latest"
+                    echo "::set-output name=version::$VERSION"
+                    echo "::set-output name=bot_version::$BOT_VERSION"
+                    echo "::set-output name=labels::$LABELS"
+                shell: /usr/bin/bash -e {0}
 
             -   name: Log in to Docker Hub
-                if: steps.check_changes.outputs.changes == 'true'
                 uses: docker/login-action@v3.0.0
                 with:
                     username: ${{ secrets.DOCKER_USERNAME }}
@@ -39,10 +34,30 @@ jobs:
 
             -   name: Build and push Docker image
                 uses: docker/build-push-action@v5.1.0
-                if: steps.check_changes.outputs.changes == 'true'
                 with:
                     context: ./src
                     file: ./src/Dockerfile
                     push: true
-                    tags: ${{ steps.meta.outputs.tags }}
-                    labels: ${{ steps.meta.outputs.labels }}
+                    tags: qwizii/cs2-battle-bot-test:${{ steps.extract_metadata.outputs.version }}, qwizii/cs2-battle-bot-test:latest
+                    labels: ${{ steps.extract_metadata.outputs.labels }}
+            -   name: Discord notification
+                env:
+                    DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+                uses: Ilshidur/action-discord@master
+                with:
+                    args: '${{ github.repository }} successfully built and pushed Docker images qwizii/cs2-battle-bot-test:${{ steps.extract_metadata.outputs.version }} and qwizii/cs2-battle-bot-test:latest.'
+            -   name: Release New Version
+                uses: softprops/action-gh-release@v1
+                with:
+                    name: Build-${{ env.BUILD_NUMBER }}
+                    tag_name: Build-${{ env.BUILD_NUMBER }}
+                    token: ${{ secrets.RELEASE_GIT_TOKEN }}
+                    body: |
+                        API Version: ${{ steps.extract_metadata.outputs.version }}
+                        Bot Version: ${{ steps.extract_metadata.outputs.bot_version }}
+            -   name: Discord notification
+                env:
+                    DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+                uses: Ilshidur/action-discord@master
+                with:
+                    args: 'Successfuly released new version of ${{github.repository}}. API Version: ${{ steps.extract_metadata.outputs.version }}, Bot Version: ${{ steps.extract_metadata.outputs.bot_version }}'
