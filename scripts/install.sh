@@ -52,47 +52,47 @@ echo "OS: $OS_TYPE $OS_VERSION"
 
 echo -e "Creating directories..."
 
-mkdir -p cs2-battle-bot/
+mkdir -p cs2-battle-src/
 
 echo "Downloading required files from CDN..."
-curl -fsSL $CDN/examples/without-ssl/docker-compose.yml -o cs2-battle-bot/docker-compose.yml
-curl -fsSL $CDN/examples/without-ssl/.env.example -o cs2-battle-bot/.env.example
-curl -fsSL $CDN/examples/without-ssl/default.conf -o cs2-battle-bot/default.conf
-curl -fsSL $CDN/scripts/upgrade.sh -o cs2-battle-bot/upgrade.sh
-curl -fsSL $CDN/scripts/uninstall.sh -o cs2-battle-bot/uninstall.sh
+curl -fsSL $CDN/examples/without-ssl/docker-compose.yml -o cs2-battle-src/docker-compose.yml
+curl -fsSL $CDN/examples/without-ssl/.env.example -o cs2-battle-src/.env.example
+curl -fsSL $CDN/examples/without-ssl/default.conf -o cs2-battle-src/default.conf
+curl -fsSL $CDN/scripts/upgrade.sh -o cs2-battle-src/upgrade.sh
+curl -fsSL $CDN/scripts/uninstall.sh -o cs2-battle-src/uninstall.sh
 
-chmod +x cs2-battle-bot/upgrade.sh
-chmod +x cs2-battle-bot/uninstall.sh
+chmod +x cs2-battle-src/upgrade.sh
+chmod +x cs2-battle-src/uninstall.sh
 
 # Copy .env.example if .env does not exist
-if [ ! -f cs2-battle-bot/.env ]; then
-    cp cs2-battle-bot/.env.example cs2-battle-bot/.env
+if [ ! -f cs2-battle-src/.env ]; then
+    cp cs2-battle-src/.env.example cs2-battle-src/.env
 
     DJANGO_SECRET_KEY=$(openssl rand -hex 50)
-    sed -i "s|SECRET_KEY=.*|SECRET_KEY=$DJANGO_SECRET_KEY|g" cs2-battle-bot/.env
+    sed -i "s|SECRET_KEY=.*|SECRET_KEY=$DJANGO_SECRET_KEY|g" cs2-battle-src/.env
 
     API_URL=$1
-    sed -i "s|API_URL=.*|API_URL=$API_URL|g" cs2-battle-bot/.env
-    sed -i "s|CSRF_TRUSTED_ORIGINS=.*|CSRF_TRUSTED_ORIGINS=$API_URL|g" cs2-battle-bot/.env
+    sed -i "s|API_URL=.*|API_URL=$API_URL|g" cs2-battle-src/.env
+    sed -i "s|CSRF_TRUSTED_ORIGINS=.*|CSRF_TRUSTED_ORIGINS=$API_URL|g" cs2-battle-src/.env
 
     STEAM_API_KEY=$2
-    sed -i "s|STEAM_API_KEY=.*|STEAM_API_KEY=$STEAM_API_KEY|g" cs2-battle-bot/.env
+    sed -i "s|STEAM_API_KEY=.*|STEAM_API_KEY=$STEAM_API_KEY|g" cs2-battle-src/.env
 
     DISCORD_CLIENT_ID=$3
-    sed -i "s|DISCORD_CLIENT_ID=.*|DISCORD_CLIENT_ID=$DISCORD_CLIENT_ID|g" cs2-battle-bot/.env
+    sed -i "s|DISCORD_CLIENT_ID=.*|DISCORD_CLIENT_ID=$DISCORD_CLIENT_ID|g" cs2-battle-src/.env
 
     DISCORD_CLIENT_SECRET=$4
-    sed -i "s|DISCORD_CLIENT_SECRET=.*|DISCORD_CLIENT_SECRET=$DISCORD_CLIENT_SECRET|g" cs2-battle-bot/.env
+    sed -i "s|DISCORD_CLIENT_SECRET=.*|DISCORD_CLIENT_SECRET=$DISCORD_CLIENT_SECRET|g" cs2-battle-src/.env
 
     DISCORD_BOT_TOKEN=$5
-    sed -i "s|DISCORD_BOT_TOKEN=.*|DISCORD_BOT_TOKEN=$DISCORD_BOT_TOKEN|g" cs2-battle-bot/.env
+    sed -i "s|DISCORD_BOT_TOKEN=.*|DISCORD_BOT_TOKEN=$DISCORD_BOT_TOKEN|g" cs2-battle-src/.env
 fi
 
 # Merge .env and .env.production. New values will be added to .env
-sort -u -t '=' -k 1,1 cs2-battle-bot/.env cs2-battle-bot/.env.example | sed '/^$/d' >cs2-battle-bot/.env.temp && mv cs2-battle-bot/.env.temp cs2-battle-bot/.env
+sort -u -t '=' -k 1,1 cs2-battle-src/.env cs2-battle-src/.env.example | sed '/^$/d' >cs2-battle-src/.env.temp && mv cs2-battle-src/.env.temp cs2-battle-src/.env
 
 
-bash cs2-battle-bot/upgrade.sh
+bash cs2-battle-src/upgrade.sh
 
 echo -e "\nCongratulations! Your CS2 Battle Bot instance is ready to use.\n"
 echo "Please visit $API_URL/admin/ to get started."

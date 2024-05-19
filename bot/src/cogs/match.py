@@ -6,8 +6,6 @@ import json
 from http import HTTPStatus
 
 import discord
-from cogs.utils import create_match_embed, get_servers_list
-from cogs.views import ConfigureGuildView, LaunchMatchView, MapBanView
 from cs2_battle_bot_api_client.api.account_connect_link import (
     account_connect_link_retrieve,
 )
@@ -36,6 +34,9 @@ from i18n import _
 from logger import logger
 from redis.client import PubSub
 from settings import api_client, settings
+
+from cogs.utils import create_match_embed, get_servers_list
+from cogs.views import ConfigureGuildView, LaunchMatchView, MapBanView
 
 
 class MatchCog(commands.Cog):

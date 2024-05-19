@@ -52,5 +52,5 @@ jobs:
                 uses: peter-evans/repository-dispatch@v2
                 with:
                     token: ${{ secrets.RELEASE_GIT_TOKEN }}
-                    repository: Qwizi/cs2-battle-bot-api-client
+                    repository: Qwizi/cs2-battle-src-api-client
                     event-type: generate-client

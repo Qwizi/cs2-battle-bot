@@ -1,4 +1,4 @@
-"""Utility functions for the bot."""
+"""Utility functions for the src."""
 
 from __future__ import annotations
 

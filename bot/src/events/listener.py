@@ -1,4 +1,4 @@
-"""Event listener for the bot."""
+"""Event listener for the src."""
 
 from __future__ import annotations
 
@@ -22,7 +22,7 @@ class Event(ABC):
 
         Args:
         ----
-            bot (discord.Bot): Bot instance.
+            src (discord.Bot): Bot instance.
             name (str): Event name.
             matchid (int): Match ID.
 
@@ -79,7 +79,7 @@ class Event(ABC):
 
 
 class EventListener:
-    """Event listener for the bot."""
+    """Event listener for the src."""
 
     def __init__(self, events: list[Event], pubsub: PubSub) -> None:
         """

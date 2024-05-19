@@ -33,7 +33,7 @@ requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.taskipy.tasks]
-start = "python -m bot"
+start = "python -m src"
 
 [tool.ruff]
 exclude = ["tests/"]

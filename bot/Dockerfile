@@ -42,5 +42,5 @@ USER fastapiuser
 
 
 
-# Start the bot.
+# Start the src.
 CMD ["task", "start"]

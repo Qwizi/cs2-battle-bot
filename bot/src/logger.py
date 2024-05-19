@@ -1,4 +1,4 @@
-"""Logging configuration for the bot."""
+"""Logging configuration for the src."""
 
 import logging
 import sys

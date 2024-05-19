@@ -37,14 +37,14 @@ jobs:
                     context: ./api
                     file: ./api/Dockerfile
                     push: true
-                    tags: qwizii/cs2-battle-bot-api:${{ steps.extract_metadata.outputs.version }}, qwizii/cs2-battle-bot-api:latest
+                    tags: qwizii/cs2-battle-src-api:${{ steps.extract_metadata.outputs.version }}, qwizii/cs2-battle-src-api:latest
                     labels: ${{ steps.extract_metadata.outputs.labels }}
             -   name: Discord notification
                 env:
                     DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
                 uses: Ilshidur/action-discord@master
                 with:
-                    args: '${{ github.repository }} successfully built and pushed Docker images qwizii/cs2-battle-bot-api:${{ steps.extract_metadata.outputs.version }} and qwizii/cs2-battle-bot-api:latest.'
+                    args: '${{ github.repository }} successfully built and pushed Docker images qwizii/cs2-battle-src-api:${{ steps.extract_metadata.outputs.version }} and qwizii/cs2-battle-src-api:latest.'
             -   name: Release New Version
                 uses: softprops/action-gh-release@v1
                 with:

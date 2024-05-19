@@ -43,11 +43,11 @@ services:
     healthcheck:
       test: "exit 1"
   bot:
-    build: ./src/
+    build: ./bot
     env_file:
       - .env
     volumes:
-      - ./src/:/app
+      - ./bot/:/app
     networks:
       - cs2-battle-bot-network
 

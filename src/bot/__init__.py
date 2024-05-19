@@ -1,1 +1,0 @@
-"""Main bot package."""

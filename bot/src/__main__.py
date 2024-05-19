@@ -2,33 +2,33 @@
 
 import discord
 import redis
-from cogs.match import MatchCog
 from cs2_battle_bot_api_client.api.guilds import guilds_create, guilds_retrieve
 from cs2_battle_bot_api_client.errors import UnexpectedStatus
 from cs2_battle_bot_api_client.models import CreateGuild, Guild
 from cs2_battle_bot_api_client.types import Response
+from redis import ConnectionError, TimeoutError
+
+from .bot import bot
+from cogs.match import MatchCog
 from i18n import i18n
 from logger import logger
-from redis import ConnectionError, TimeoutError
 from settings import api_client, settings
-
-from bot import bot
 
 
 @bot.event
 async def on_ready() -> None:
-    """Print a message when the bot is ready."""
+    """Print a message when the src is ready."""
     logger.debug(f"We have logged in as {bot.user}")
 
 
 @bot.event
 async def on_guild_join(guild: discord.Guild) -> None:
     """
-    Handle the bot joining a guild.
+    Handle the src joining a guild.
 
     Args:
     ----
-        guild (discord.Guild): The guild the bot joined.
+        guild (discord.Guild): The guild the src joined.
 
     Returns:
     -------
@@ -51,13 +51,13 @@ async def on_guild_join(guild: discord.Guild) -> None:
             ),
         )
         logger.info(
-            f"Guild {new_guild_response.content.decode(encoding='utf-8') } created."
+            f"Guild {new_guild_response.content.decode(encoding='utf-8')} created."
         )
 
 
 @bot.event
 async def on_application_command_error(
-    ctx: discord.ApplicationContext, error: discord.DiscordException
+        ctx: discord.ApplicationContext, error: discord.DiscordException
 ) -> None:
     """
     Handle errors that occur while processing a command.
