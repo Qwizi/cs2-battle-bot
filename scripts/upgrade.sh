@@ -32,7 +32,7 @@ if [ "$DEPLOY_COOLIFY" = "True" ]; then
     echo "Superuser count: $SUPERUSER_COUNT"
     if [ "$SUPERUSER_COUNT" = "0" ]; then
       SUPERUSER_PASSWORD=$(openssl rand -hex 16)
-      ADMIN=$(docker docker exec  "$APP_CONTAINER_NAME" python manage.py shell -c "from django.contrib.auth import get_user_model; User = get_user_model(); admin = User.objects.create_superuser(username='admin', password='admin', email=None);print(admin)")
+      ADMIN=$(docker exec  "$APP_CONTAINER_NAME" python manage.py shell -c "from django.contrib.auth import get_user_model; User = get_user_model(); admin = User.objects.create_superuser(username='admin', password='admin', email=None);print(admin)")
       echo "Superuser $ADMIN created with password $SUPERUSER_PASSWORD"
   fi
 
