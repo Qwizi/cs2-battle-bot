@@ -36,6 +36,8 @@ services:
             - db
         networks:
             - cs2-battle-bot-network
+        tty: true
+        stdin_open: true
     db:
         image: 'postgres:15.1'
         container_name: cs2_battle_bot_api_db_prod
@@ -123,6 +125,8 @@ services:
             - /var/run/docker.sock:/var/run/docker.sock
         networks:
             - cs2-battle-bot-network
+        tty: true
+        stdin_open: true
 
 networks:
     cs2-battle-bot-network:
