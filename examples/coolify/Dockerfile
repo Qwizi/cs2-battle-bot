@@ -1,4 +1,5 @@
 FROM ghcr.io/coollabsio/coolify-helper:latest
+RUN apk update && apk add openssl
 
 # Download upgrade script
 
