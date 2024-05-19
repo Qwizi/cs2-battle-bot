@@ -19,13 +19,13 @@ if [ "$DEPLOY_COOLIFY" = "True" ]; then
     fi
 
     # make migrations
-    docker exec -it $APP_CONTAINER_NAME python manage.py makemigrations
+    docker exec $APP_CONTAINER_NAME python manage.py makemigrations
 
-    MAP_COUNT=$(docker exec -it "$APP_CONTAINER_NAME" python manage.py shell -c "from matches.models import Map; print(Map.objects.all().count());")
+    MAP_COUNT=$(docker exec  "$APP_CONTAINER_NAME" python manage.py shell -c "from matches.models import Map; print(Map.objects.all().count());")
 
     # Load map fixtures if there are no maps in the database
     if [ "$MAP_COUNT" = "0" ]; then
-        docker exec -it "$APP_CONTAINER_NAME" python manage.py loaddata maps
+        docker exec  "$APP_CONTAINER_NAME" python manage.py loaddata maps
     fi
 
     # COPY
