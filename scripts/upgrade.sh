@@ -19,7 +19,7 @@ if [ "$DEPLOY_COOLIFY" = "True" ]; then
     fi
 
     # make migrations
-    docker exec $APP_CONTAINER_NAME python manage.py makemigrations
+    docker exec $APP_CONTAINER_NAME python manage.py migrate
 
     MAP_COUNT=$(docker exec  "$APP_CONTAINER_NAME" python manage.py shell -c "from matches.models import Map; print(Map.objects.all().count());")
 
