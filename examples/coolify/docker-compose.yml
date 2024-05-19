@@ -132,5 +132,7 @@ networks:
     cs2-battle-bot-network:
         external: true
 volumes:
-    static_volume: null
-    pgdata: null
+    static_volume:
+        external: true
+    pgdata:
+        external: true
