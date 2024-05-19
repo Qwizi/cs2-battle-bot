@@ -28,20 +28,12 @@ if [ "$DEPLOY_COOLIFY" = "True" ]; then
         docker exec  "$APP_CONTAINER_NAME" python manage.py loaddata maps
     fi
 
-    # Check if openssl is installed
-    if ! command -v openssl &> /dev/null
-    then
-        echo "openssl could not be found, installing..."
-        sudo apt update
-        sudo apt install openssl -y
-    fi
-
     SUPERUSER_COUNT=$(docker exec  "$APP_CONTAINER_NAME" python manage.py shell -c "from django.contrib.auth import get_user_model; User = get_user_model(); print(User.objects.filter(is_superuser=True).count());")
     echo "Superuser count: $SUPERUSER_COUNT"
     if [ "$SUPERUSER_COUNT" = "0" ]; then
       SUPERUSER_PASSWORD=$(openssl rand -hex 16)
-      docker docker exec  "$APP_CONTAINER_NAME" python manage.py shell -c "from django.contrib.auth import get_user_model; User = get_user_model(); User.objects.create_superuser(username='admin', password='$SUPERUSER_PASSWORD', email=None);"
-      echo "Superuser admin created with password $SUPERUSER_PASSWORD"
+      ADMIN=$(docker docker exec  "$APP_CONTAINER_NAME" python manage.py shell -c "from django.contrib.auth import get_user_model; User = get_user_model(); admin = User.objects.create_superuser(username='admin', password='admin', email=None);print(admin)")
+      echo "Superuser $ADMIN created with password $SUPERUSER_PASSWORD"
   fi
 
 else
