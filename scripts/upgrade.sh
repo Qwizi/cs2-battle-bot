@@ -28,7 +28,13 @@ if [ "$DEPLOY_COOLIFY" = "True" ]; then
         docker exec  "$APP_CONTAINER_NAME" python manage.py loaddata maps
     fi
 
-    # COPY
+    SUPERUSER_COUNT=$(docker exec  "$APP_CONTAINER_NAME" -T app python manage.py shell -c "from django.contrib.auth import get_user_model; User = get_user_model(); print(User.objects.filter(is_superuser=True).count());")
+
+    if [ "$SUPERUSER_COUNT" = "0" ]; then
+      SUPERUSER_PASSWORD=$(openssl rand -hex 16)
+      docker docker exec  "$APP_CONTAINER_NAME" -T app python manage.py shell -c "from django.contrib.auth import get_user_model; User = get_user_model(); User.objects.create_superuser(username='admin', password='$SUPERUSER_PASSWORD', email=None);"
+      echo "Superuser admin created with password $SUPERUSER_PASSWORD"
+  fi
 
 else
   echo "Upgrading without Coolify"
