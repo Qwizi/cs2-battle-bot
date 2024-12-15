@@ -20,9 +20,22 @@ drf-spectacular = "^0.27.2"
 drf-standardized-errors = "^0.14.0"
 django-group-model = "^1.0.1"
 py-cord = "^2.5.0"
-django-allauth = {extras = ["socialaccount", "steam"], version = "^0.63.3"}
+django-allauth = { extras = ["socialaccount", "steam"], version = "^0.63.3" }
 
+
+[tool.poetry.group.dev.dependencies]
+pytest-django = "^4.8.0"
+factory-boy = "^3.3.0"
+pytest-asyncio = "^0.23.7"
 
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "cs2_battle_bot.settings"
+python_files = ["test_*.py", "*_test.py", "testing/python/*.py"]
+env = [
+    "TESTING=True",
+]

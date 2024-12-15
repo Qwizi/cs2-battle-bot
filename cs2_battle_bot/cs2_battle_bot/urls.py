@@ -17,7 +17,10 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 
+from cs2_battle_bot.views import IndexTemplateView
+
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('accounts/', include('allauth.urls')),
+    path("", IndexTemplateView.as_view(), name="entry-point"),
 ]
