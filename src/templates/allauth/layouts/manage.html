@@ -1,0 +1,27 @@
+{% extends "layout/base.html" %}
+{% load i18n %}
+{% block body %}
+    <div class="flex flex-col lg:flex-row justify-center mt-10 mb-10 w-full" hx-boost="false">
+        <div class="flex flex-col lg:flex-row gap-4 w-full">
+
+            <div class="w-full lg:w-1/4">
+                <ul class="menu bg-base-200 rounded-box w-full">
+                    <li>
+                        <h2 class="menu-title">Panel użytkownika</h2>
+                        <ul>
+                            <li ><a href="{% url 'socialaccount_connections' %}"  >{% trans "Third-Party Accounts" %}</a>
+                            </li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+            <div class="w-full lg:w-3/4">
+                <div class="card bg-base-200 shadow-xl">
+                    <div class="card-body">
+                        {% block content %}{% endblock %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

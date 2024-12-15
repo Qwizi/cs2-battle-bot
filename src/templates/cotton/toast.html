@@ -1,0 +1,5 @@
+<c-vars type title description position align/>
+
+<div class="toas{% if position %} toast-{{ position }}{% endif %}{% if align %} toast-{{ align }}{% endif %}" {{ attrs }}>
+    <c-alert type="{{ type }}" title="{{ title }}" description="{{ description }}"/>
+</div>

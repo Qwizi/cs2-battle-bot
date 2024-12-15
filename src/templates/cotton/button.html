@@ -1,0 +1,18 @@
+<c-vars
+        type
+        active
+        outline
+        block
+        size
+        wide
+        square
+        circle
+        join
+        no_animation
+/>
+<button
+        class="btn{% if type %} btn-{{ type }}{% endif %}{% if active %} btn-active{% endif %}{% if outline %} btn-outline{% endif %}{% if block %} btn-block{% endif %}{% if size %} btn-{{ size }}{% endif %}{% if wide %} btn-wide{% endif %}{% if square %} btn-square{% endif %}{% if circle %} btn-circle{% endif %}{% if no_animation %} btn-no-animation{% endif %}{% if join %} join-item{% endif %}"
+        {{ attrs }}
+>
+    {{ slot }}
+</button>

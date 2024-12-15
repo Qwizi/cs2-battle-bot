@@ -1,0 +1,5 @@
+<c-vars type data_content/>
+
+<li class="step{% if type %} step-{{ type }}{% endif %}" {% if data_content %}data-content="{{ data_content }}"{% endif %}>
+    {{ slot }}
+</li>

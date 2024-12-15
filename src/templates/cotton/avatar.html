@@ -1,0 +1,10 @@
+<c-vars w="16" online_status online rounded src="https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.webp"
+        alt="User avatar"/>
+
+<div class="avatar{% if online_status %}{% if online %} online{% else %} offline{% endif %}{% endif %}{% if offline %} offline{% endif %}"
+     {{ attrs }}
+>
+    <div class="w-{{ w }}{% if rounded %} rounded-{{ rounded }}{% endif %}">
+        <img src="{{ src }}" alt="{{ alt }}"/>
+    </div>
+</div>

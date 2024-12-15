@@ -1,0 +1,5 @@
+<c-vars type position horizontal/>
+
+<div class="divider{% if type %} divider-{{ type }}{% endif %}{% if horizontal %} divider-horizontal{% endif %}{% if position %} divider-{{ position }}{% endif %}">
+    {{ slot }}
+</div>

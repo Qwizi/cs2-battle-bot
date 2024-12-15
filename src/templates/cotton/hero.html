@@ -1,0 +1,47 @@
+<c-vars bg title center min_h_screen="True" overlay image_src image_alt="Image alternative text" bg_opacity="60"
+        center="True" reverse="False"/>
+
+{% if overlay and image_src %}
+    <div
+            class="hero{% if min_h_screen %} min-h-screen{% endif %}"
+            style="background-image: url({{ image_src }});"
+            {{ attrs }}
+    >
+        <div class="hero-overlay bg-opacity-{{ bg_opacity }}"></div>
+        <div class="hero-content text-neutral-content text-center">
+            <div class="max-w-md">
+                {% if title %}
+                    <h1 class="mb-5 text-5xl font-bold">{{ title }}</h1>
+                {% endif %}
+                {{ slot }}
+            </div>
+        </div>
+    </div>
+{% else %}
+    <div class="hero bg-{{ bg }}{% if min_h_screen %} min-h-screen{% endif %}" {{ attrs }}>
+    {% if center is True %}
+        <div class="hero-content text-center">
+    {% else %}
+        {% if reverse %}
+            <div class="hero-content flex-col lg:flex-row-reverse">
+        {% else %}
+            <div class="hero-content flex-col lg:flex-row">
+        {% endif %}
+
+        {% if image_src %}
+            <img
+                    src="{{ image_src }}"
+                    class="max-w-sm rounded-lg shadow-2xl"
+                    alt="{{ image_alt }}"
+            />
+        {% endif %}
+    {% endif %}
+<div class="{% if center is True%}max-w-md{% endif %}">
+    {% if title %}
+        <h1 class="text-5xl font-bold">{{ title }}</h1>
+    {% endif %}
+    {{ slot }}
+</div>
+</div>
+</div>
+{% endif %}

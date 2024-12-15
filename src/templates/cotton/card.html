@@ -1,0 +1,37 @@
+<c-vars
+        bg="base-100"
+        w="96"
+        title
+        shadow
+        compact
+        image_full
+        glass
+        side
+        image_src
+        image_alt="Image alternative text"
+/>
+<div
+        class="card{% if bg %} bg-{{ bg }}{% endif %}{% if w %} w-{{ w }}{% endif %}{% if shadow %} shadow-{{ shadow }}{% endif %}{% if compact %} card-compact{% endif %}{% if image_full %} image-full{% endif %}{% if glass %} glass{% endif %}{% if side %} lg:card-side{% endif %}"
+        {{ attrs }}
+>
+    {% if image_src %}
+    <figure>
+        <img
+                src="{{ image_src }}"
+                alt="{{ image_alt}}"
+        />
+    </figure>
+    {% endif %}
+
+    <div class="card-body">
+        {% if title %}
+            <h2 class="card-title">{{ title }}</h2>
+        {% endif %}
+        {{ slot }}
+        {% if footer %}
+        <div class="card-actions justify-end">
+            {{ footer }}
+        </div>
+        {% endif %}
+    </div>
+</div>

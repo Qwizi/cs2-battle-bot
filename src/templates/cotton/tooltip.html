@@ -1,0 +1,5 @@
+<c-vars data open position color large_screen/>
+<div class="{% if large_screen %}lg:tooltip{% else %}tooltip{% endif %}{% if open %} tooltip-open{% endif %}{% if position %} tooltip-{{ position }}{% endif %}{% if color %} tooltip-{{ color }}{% endif %}"
+     data-tip="{{ data }}">
+    {{ slot }}
+</div>

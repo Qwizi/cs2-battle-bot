@@ -1,0 +1,10 @@
+{% extends "layout/base.html" %}
+{% load i18n %}
+{% block body %}
+<div class="flex items-center justify-center mt-10 mb-10 w-full">
+    <c-card bg="base-200">
+        {% block content %}{% endblock %}
+    </c-card>
+</div>
+
+{% endblock %}

@@ -1,0 +1,22 @@
+<c-vars bg="base-100" navbar_start navbar_center navbar_end/>
+
+<div class="navbar bg-{{ bg }}">
+    <div class="container mx-auto">
+        {{ slot }}
+        {% if navbar_start %}
+        <div class="navbar-start">
+            {{ navbar_start }}
+        </div>
+        {% endif %}
+        {% if navbar_center %}
+        <div class="navbar-center hidden lg:flex">
+            {{ navbar_center }}
+        </div>
+        {% endif %}
+        {% if navbar_end %}
+        <div class="navbar-end">
+            {{ navbar_end }}
+        </div>
+        {% endif %}
+    </div>
+</div>

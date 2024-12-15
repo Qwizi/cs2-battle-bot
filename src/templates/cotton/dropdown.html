@@ -1,0 +1,8 @@
+<c-vars title bg="base-100" rounded="True" w="52" shadow="True" position align hover open/>
+
+<div class="dropdown{% if position %} dropdown-{{ position }}{% endif %}{% if align %} dropdown-{{ align }}{% endif %}{% if hover %} dropdown-hover{% endif %}{% if open %} dropdown-open{% endif %}" {{ attrs }}>
+    <div tabindex="0" role="button" class="btn m-1">{{ title }}</div>
+    <ul tabindex="0" class="dropdown-content menu bg-{{ bg }}{% if rounded %} rounded-box{% endif %} z-[1] w-{{ w }} p-2{% if shadow %} shadow{% endif %}">
+        {{ slot }}
+    </ul>
+</div>

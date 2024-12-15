@@ -1,0 +1,14 @@
+<c-vars bg="base-200" w="56" size title responsive horizontal/>
+
+<ul class="menu{% if responsive is True %} menu-vertical lg:menu-horizontal{% endif %}{% if horizontal %} menu-horizontal{% endif %} bg-{{ bg }} rounded-box w-{{ w }}{% if size %} menu-{{ size }}{% endif %}" {{ attrs }}>
+{% if title %}
+    <li>
+        <h2 class="menu-title">{{ title }}</h2>
+        <ul>
+            <li>{{ slot }}</li>
+        </ul>
+    </li>
+{% else %}
+    {{ slot }}
+{% endif %}
+</ul>
