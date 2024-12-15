@@ -1,68 +1,52 @@
 services:
-  app:
-    build:
-      context: ./
-      dockerfile: Dockerfile
-    container_name: cs2_battle_bot_api
-    command: python manage.py runserver 0.0.0.0:8000
-    ports:
-      - "8002:8000"
-    volumes:
-      - ./cs2_battle_bot:/app
-    env_file:
-      - .env
-    restart: unless-stopped
-    depends_on:
-      - db
-    networks:
-      - cs2-battle-bot-network
-    healthcheck:
-      test: [ "CMD-SHELL", "curl --fail http://localhost:8000 || exit 1" ]
-      interval: 30s
-      timeout: 30s
-      retries: 3
-  bot:
-    build:
-      context: ./
-      dockerfile: Dockerfile
-    container_name: cs2_battle_bot_bot
-    command: python manage.py run_bot
-    env_file:
-      - .env
-    restart: unless-stopped
-    depends_on:
-      - app
-    networks:
-      - cs2-battle-bot-network
-  db:
-    image: postgres:15.1
-    container_name: cs2_battle_bot_db
-    env_file:
-      - .env
-    restart: unless-stopped
-    ports:
-      - "5435:5432"
-    networks:
-      - cs2-battle-bot-network
-    healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
-      interval: 30s
-      timeout: 30s
-      retries: 3
-  redis:
-    image: "redis:alpine"
-    container_name: cs2_battle_bot_redis
-    command: redis-server --requirepass ${REDIS_PASSWORD}
-    restart: unless-stopped
-    expose:
-      - "6379:6379"
-    networks:
-      - cs2-battle-bot-network
-    healthcheck:
-      test: [ "CMD-SHELL", "redis-cli ping || exit 1" ]
-      interval: 30s
-      timeout: 30s
-      retries: 3
+    app:
+        build:
+            context: ./
+            dockerfile: Dockerfile
+        container_name: cs2_battle_bot_app
+        command: "python manage.py runserver 0.0.0.0:8000"
+        ports:
+            - "8002:8000"
+        volumes:
+            - ./src/:/app/
+        env_file:
+            - .env
+        restart: unless-stopped
+        depends_on:
+            - db
+        networks:
+            - cs2-battle-bot-network
+    db:
+        image: postgres:15.1
+        container_name: cs2_battle_bot_db
+        environment:
+            TZ: "Europe/Warsaw"
+        env_file:
+            - .env
+        restart: unless-stopped
+        ports:
+            - "5438:5432"
+        networks:
+            - cs2-battle-bot-network
+        healthcheck:
+            test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+            interval: 30s
+            timeout: 30s
+            retries: 3
+    redis:
+        image: "redis:alpine"
+        container_name: cs2_battle_bot_redis
+        command: redis-server --requirepass ${REDIS_PASSWORD}
+        restart: unless-stopped
+        expose:
+            - "6379:6379"
+        networks:
+            - cs2-battle-bot-network
+        healthcheck:
+            test: [ "CMD-SHELL", "redis-cli ping || exit 1" ]
+            interval: 30s
+            timeout: 30s
+            retries: 3
 
 networks:
-  cs2-battle-bot-network:
+    cs2-battle-bot-network:

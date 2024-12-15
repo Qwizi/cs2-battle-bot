@@ -1,0 +1,24 @@
+[tool.poetry]
+name = "cs2-battle-bot"
+version = "0.0.11"
+description = ""
+authors = ["Adrian Ciolek <ciolek.adrian@protonmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+django = "^5.1.4"
+python-decouple = "^3.8"
+psycopg2-binary = "^2.9.10"
+django-prefix-id = "^1.0.0"
+django-allauth = {extras = ["discord", "socialaccount", "steam"], version = "^65.3.0"}
+cotton-daisy = "^0.0.16"
+crispy-daisyui = "^0.7.0"
+django-cotton = "^1.5.1"
+django-unfold = "^0.43.0"
+py-cord = {extras = ["speed"], version = "^2.6.1"}
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
