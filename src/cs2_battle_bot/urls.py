@@ -17,7 +17,14 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 
+from core.views import index
+
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('accounts/', include('allauth.urls'))
+    path('accounts/', include('allauth.urls')),
+    path('users/', include('accounts.urls')),
+    path("", index, name="index"),
+    path("guilds/", include("guilds.urls")),
+    path("matches/", include("matches.urls")),
+    path("teams/", include("teams.urls")),
 ]

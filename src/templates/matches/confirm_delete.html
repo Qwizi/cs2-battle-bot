@@ -1,0 +1,24 @@
+{% extends "layout/base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Confirm Delete Match" %}{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="max-w-lg mx-auto bg-base-200 p-6 rounded-lg shadow">
+        <h1 class="text-2xl font-bold mb-4">{% trans "Delete Match" %}: {{ match.name|default:match.pk }}</h1>
+        <p class="mb-6">{% blocktrans with match_identifier=match.name|default:match.pk %}Are you sure you want to delete the match "<strong>{{ match_identifier }}</strong>"? This action cannot be undone.{% endblocktrans %}</p>
+        
+        <form method="post" 
+              hx-post="{% url 'matches:match-delete' match.pk %}" 
+              hx-target="body" 
+              hx-swap="innerHTML">
+            {% csrf_token %}
+            <div class="flex justify-end space-x-3">
+                <a href="{% url 'matches:match-detail' match.pk %}" class="btn btn-ghost">{% trans "Cancel" %}</a>
+                <button type="submit" class="btn btn-error">{% trans "Yes, Delete" %}</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

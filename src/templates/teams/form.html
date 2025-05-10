@@ -1,0 +1,427 @@
+{% extends "layout/base.html" %}
+{% load i18n %}
+{% load crispy_forms_tags %}
+
+{% block title %}{{ form_title }}{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8 max-w-2xl">
+    <h1 class="text-3xl font-bold mb-6">{{ form_title }}</h1>
+    
+    <form method="post" id="teamForm"> 
+        {% csrf_token %}
+        
+        {% if form.non_field_errors %}
+            <div class="alert alert-error shadow-lg my-4">
+                <div>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current flex-shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                    <span>
+                        {% for error in form.non_field_errors %}
+                            {{ error }}{% if not forloop.last %}<br>{% endif %}
+                        {% endfor %}
+                    </span>
+                </div>
+            </div>
+        {% endif %}
+
+        {{ form|crispy }}
+
+        <!-- Captain Selection -->
+        <div class="form-control w-full mt-4">
+            <label class="label">
+                <span class="label-text">{% trans "Captain" %}</span>
+            </label>
+            <input type="text" 
+                   id="captain_search"
+                   class="input input-bordered w-full" 
+                   placeholder="{% trans "Search for captain..." %}"
+                   hx-get="{% url 'teams:player-search' %}"
+                   hx-trigger="keyup changed delay:500ms"
+                   hx-target="#captain_search_results"
+                   hx-swap="innerHTML"
+                   name="user_query"
+                   hx-vals='{"search_context": "captain"}'>
+            <div id="captain_search_results" class="mt-1 border border-base-300 rounded max-h-48 overflow-y-auto"></div>
+            <input type="hidden" name="capitan" id="selected_captain_id">
+            <div id="selected_captain_display" class="mt-2">
+                {% if object.capitan %}
+                <div class="flex items-center space-x-3 p-2 bg-base-200 rounded-md">
+                    <div class="avatar">
+                        <div class="mask mask-squircle w-8 h-8">
+                            <img src="{{ object.capitan.get_avatar }}" alt="{{ object.capitan.username }}"/>
+                        </div>
+                    </div>
+                    <span>{{ object.capitan.username }}</span>
+                    <button type="button" class="btn btn-xs btn-ghost text-error" onclick="removeCaptain()">X</button>
+                </div>
+                <script>
+                    // Pre-fill captain if editing
+                    document.getElementById('selected_captain_id').value = '{{ object.capitan.id }}';
+                </script>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Players Selection -->
+        <div class="form-control w-full mt-4">
+            <label class="label">
+                <span class="label-text">{% trans "Players" %}</span>
+            </label>
+            <input type="text" 
+                   id="player_search"
+                   class="input input-bordered w-full" 
+                   placeholder="{% trans "Search for players to add..." %}"
+                   hx-get="{% url 'teams:player-search' %}"
+                   hx-trigger="keyup changed delay:500ms"
+                   hx-target="#player_search_results"
+                   hx-swap="innerHTML"
+                   name="user_query"
+                   hx-vals='{"search_context": "player"}'>
+            <div id="player_search_results" class="mt-1 border border-base-300 rounded max-h-48 overflow-y-auto"></div>
+            <div id="selected_players_list" class="mt-2 space-y-2">
+                {% if object and object.players.all %}
+                    {% for player_instance in object.players.all %}
+                        <input type="hidden" name="players" value="{{ player_instance.id }}">
+                        <div class="flex items-center justify-between p-2 bg-base-200 rounded-md" id="selected-player-{{ player_instance.id }}">
+                            <div class="flex items-center space-x-3">
+                                <div class="avatar">
+                                    <div class="mask mask-squircle w-8 h-8">
+                                        <img src="{{ player_instance.get_avatar }}" alt="{{ player_instance.username }}"/>
+                                    </div>
+                                </div>
+                                <span>{{ player_instance.username }}</span>
+                            </div>
+                            <button type="button" class="btn btn-xs btn-ghost text-error remove-player-btn" onclick="removePlayer('{{ player_instance.id }}')" 
+                                {% if object.capitan and player_instance.id == object.capitan.id %}disabled{% endif %}>
+                                X
+                            </button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="mt-8 flex items-center justify-end space-x-3">
+            <button type="submit" class="btn btn-primary">
+                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 mr-2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" /></svg>
+                {% trans "Save Team" %}
+            </button>
+            <a href="{% if object %}{% url 'teams:team-detail' object.pk %}{% else %}{% url 'teams:team-list' %}{% endif %}" class="btn btn-ghost">
+                {% trans "Cancel" %}
+            </a>
+        </div>
+    </form>
+</div>
+
+<script>
+    // Ensure selectedPlayers is initialized only once on the window object
+    if (typeof window.selectedPlayers === 'undefined') {
+        window.selectedPlayers = new Set();
+    }
+    
+    function setupPlayerSearchClickListeners() {
+        console.log('Setting up player search click listeners...');
+        // Event delegation for captain search results
+        const captainSearchResultsDiv = document.getElementById('captain_search_results');
+        if (captainSearchResultsDiv) {
+            // Remove existing listener to prevent duplicates if this function is called multiple times on the same static div
+            const newCaptainDiv = captainSearchResultsDiv.cloneNode(true);
+            captainSearchResultsDiv.parentNode.replaceChild(newCaptainDiv, captainSearchResultsDiv);
+
+            newCaptainDiv.addEventListener('click', function(event) {
+                const target = event.target.closest('.search-result-item');
+                if (target) {
+                    const id = target.dataset.playerId;
+                    const username = target.dataset.playerUsername;
+                    const avatarUrl = target.dataset.playerAvatar;
+                    window.selectCaptain(id, username, avatarUrl);
+                }
+            });
+        }
+
+        // Event delegation for player search results
+        const playerSearchResultsDiv = document.getElementById('player_search_results');
+        if (playerSearchResultsDiv) {
+            // Similar to above, re-clone to ensure fresh listeners if the container itself wasn't swapped
+            const newPlayerDiv = playerSearchResultsDiv.cloneNode(true);
+            playerSearchResultsDiv.parentNode.replaceChild(newPlayerDiv, playerSearchResultsDiv);
+
+            newPlayerDiv.addEventListener('click', function(event) {
+                const target = event.target.closest('.search-result-item');
+                if (target) {
+                    const id = target.dataset.playerId;
+                    const username = target.dataset.playerUsername;
+                    const avatarUrl = target.dataset.playerAvatar;
+                    window.selectPlayer(id, username, avatarUrl);
+                }
+            });
+        }
+    }
+
+    function updatePlayerRemoveButtonStates() {
+        const selected_captain_id_element = document.getElementById('selected_captain_id');
+        // Guard against the element not existing, especially during/after HTMX swaps
+        const currentCaptainId = selected_captain_id_element ? selected_captain_id_element.value : null;
+        
+        const playerListItems = document.querySelectorAll('#selected_players_list .remove-player-btn');
+
+        playerListItems.forEach(button => {
+            // Extract player ID from the onclick attribute (e.g., removePlayer('PLAYER_ID'))
+            const onclickAttr = button.getAttribute('onclick');
+            const playerIdMatch = onclickAttr ? onclickAttr.match(/removePlayer\(\'([^\']+)\'\)/) : null;
+            const playerId = playerIdMatch ? playerIdMatch[1] : null;
+
+            if (playerId) {
+                if (currentCaptainId && playerId === currentCaptainId) {
+                    button.disabled = true;
+                } else {
+                    button.disabled = false;
+                }
+            }
+        });
+    }
+
+    // Initialize selectedPlayers and listeners on initial load
+    document.addEventListener('DOMContentLoaded', function() {
+        const existingPlayerInputs = document.querySelectorAll('#selected_players_list input[name="players"]');
+        existingPlayerInputs.forEach(input => window.selectedPlayers.add(input.value));
+        setupPlayerSearchClickListeners();
+        updatePlayerRemoveButtonStates(); // Initial state update
+    });
+
+    // Re-initialize listeners and selectedPlayers set after HTMX swaps content
+    document.addEventListener('htmx:afterSwap', function(event) {
+        console.log('htmx:afterSwap event triggered on:', event.target.id); // Log which element triggered swap
+        console.log('htmx:afterSwap event triggered, re-setting up listeners and selectedPlayers.');
+        
+        // Ensure window.selectedPlayers set is initialized
+        if (typeof window.selectedPlayers === 'undefined') {
+            window.selectedPlayers = new Set();
+        } else {
+            // If it exists, clear it to re-populate from the potentially new DOM
+            window.selectedPlayers.clear();
+        }
+        
+        // Re-populate window.selectedPlayers from the current state of the DOM
+        // This is important if the #selected_players_list itself was part of the swap
+        const existingPlayerInputs = document.querySelectorAll('#selected_players_list input[name="players"]');
+        existingPlayerInputs.forEach(input => {
+            if (input.value) { // Ensure input has a value before adding
+                window.selectedPlayers.add(input.value);
+            }
+        });
+        // console.log('Updated window.selectedPlayers after htmx:afterSwap:', Array.from(window.selectedPlayers));
+
+        setupPlayerSearchClickListeners();
+        updatePlayerRemoveButtonStates(); // Update states after swap
+    });
+
+    window.selectCaptain = function(id, username, avatarUrl) {
+        console.log('selectCaptain called with:', { id, username, avatarUrl });
+        document.getElementById('selected_captain_id').value = id;
+        const displayDiv = document.getElementById('selected_captain_display');
+        displayDiv.innerHTML = `
+            <div class="flex items-center space-x-3 p-2 bg-base-200 rounded-md">
+                <div class="avatar">
+                    <div class="mask mask-squircle w-8 h-8">
+                        <img src="${avatarUrl}" alt="${username}"/>
+                    </div>
+                </div>
+                <span>${username}</span>
+                <button type="button" class="btn btn-xs btn-ghost text-error" onclick="removeCaptain()">X</button>
+            </div>
+        `;
+        document.getElementById('captain_search_results').innerHTML = '';
+        document.getElementById('captain_search').value = username;
+
+        const stringId = id.toString();
+
+        // 1. Add to JS set
+        if (!window.selectedPlayers.has(stringId)) {
+            window.selectedPlayers.add(stringId);
+            console.log(`Added captain ${stringId} to window.selectedPlayers set.`);
+        } else {
+            console.log(`Captain ${stringId} was already in window.selectedPlayers set.`);
+        }
+
+        // 2. Ensure hidden input for captain exists in player list (as a direct child)
+        let captainHiddenInput = document.querySelector(`#selected_players_list > input[name="players"][value="${stringId}"]`);
+        if (!captainHiddenInput) {
+            captainHiddenInput = document.createElement('input');
+            captainHiddenInput.type = 'hidden';
+            captainHiddenInput.name = 'players';
+            captainHiddenInput.value = stringId;
+            document.getElementById('selected_players_list').appendChild(captainHiddenInput);
+            console.log(`Added direct hidden input for captain ${stringId} to #selected_players_list.`);
+        } else {
+            console.log(`Direct hidden input for captain ${stringId} already exists in #selected_players_list.`);
+        }
+
+        // 3. Ensure visual representation for captain exists in player list
+        if (!document.getElementById(`selected-player-${stringId}`)) {
+            const listDiv = document.getElementById('selected_players_list');
+            const playerDiv = document.createElement('div');
+            playerDiv.classList.add('flex', 'items-center', 'justify-between', 'p-2', 'bg-base-200', 'rounded-md');
+            playerDiv.id = `selected-player-${stringId}`;
+            // The captain, when added to player list, should also have a remove button (which will be disabled by updatePlayerRemoveButtonStates)
+            // No hidden input INSIDE this visual div for the captain, as it's handled separately above.
+            playerDiv.innerHTML = `
+                <div class="flex items-center space-x-3">
+                    <div class="avatar">
+                        <div class="mask mask-squircle w-8 h-8">
+                            <img src="${avatarUrl}" alt="${username}"/>
+                        </div>
+                    </div>
+                    <span>${username}</span>
+                </div>
+                <button type="button" class="btn btn-xs btn-ghost text-error remove-player-btn" onclick="removePlayer('${stringId}')">X</button>
+            `;
+            listDiv.appendChild(playerDiv);
+            console.log(`Added visual representation for captain ${stringId} to #selected_players_list.`);
+        } else {
+            console.log(`Visual representation for captain ${stringId} (selected-player-${stringId}) already in #selected_players_list.`);
+        }
+        updatePlayerRemoveButtonStates();
+    };
+
+    window.removeCaptain = function() {
+        console.log('Attempting to remove captain...');
+        const captainId = document.getElementById('selected_captain_id').value;
+
+        document.getElementById('selected_captain_id').value = '';
+        document.getElementById('selected_captain_display').innerHTML = '';
+        console.log('Cleared captain display and selected_captain_id input.');
+
+        if (captainId) {
+            // When a captain is removed, they are no longer forced to be in the player list by this client-side logic.
+            // The server will handle the final player list.
+            // We DO remove their hidden input from the player list if it was added by selectCaptain or was there initially.
+            const captainHiddenInputInPlayerList = document.querySelector(`#selected_players_list > input[name="players"][value="${captainId}"]`);
+            if (captainHiddenInputInPlayerList) {
+                captainHiddenInputInPlayerList.remove();
+                console.log(`SUCCESS: Removed hidden input for former captain ${captainId} from #selected_players_list.`);
+            } else {
+                console.warn(`INFO: Hidden input for former captain ${captainId} not found in #selected_players_list (might have been removed by removePlayer).`);
+            }
+
+            // Also remove the visual representation if the captain was listed as a player
+            const playerVisualDiv = document.getElementById(`selected-player-${captainId}`);
+            if (playerVisualDiv) {
+                playerVisualDiv.remove();
+                console.log(`SUCCESS: Removed visual div for former captain acting as player: selected-player-${captainId}.`);
+            }
+            
+            // Remove from the JS set
+            const wasInSet = window.selectedPlayers.delete(captainId.toString());
+            if (wasInSet) {
+                console.log(`SUCCESS: Removed former captain ${captainId} from window.selectedPlayers set.`);
+            } else {
+                 console.warn(`INFO: Former captain ${captainId} was not found in window.selectedPlayers set.`);
+            }
+        } else {
+            console.log('No captain ID was selected, nothing further to remove related to captaincy.');
+        }
+        updatePlayerRemoveButtonStates(); // Update button states
+    };
+
+    window.selectPlayer = function(id, username, avatarUrl) {
+        const stringId = id.toString();
+        console.log('selectPlayer called with:', { id: stringId, username, avatarUrl });
+        console.log('Current window.selectedPlayers before check:', Array.from(window.selectedPlayers));
+
+        if (window.selectedPlayers.has(stringId)) {
+            console.log('Player already selected based on window.selectedPlayers set:', stringId);
+            document.getElementById('player_search_results').innerHTML = '';
+            document.getElementById('player_search').value = username; // Or clear it, or keep as is.
+            return;
+        }
+        window.selectedPlayers.add(stringId);
+        console.log('Added player to window.selectedPlayers set:', stringId);
+
+        const listDiv = document.getElementById('selected_players_list');
+        const playerDiv = document.createElement('div');
+        playerDiv.classList.add('flex', 'items-center', 'justify-between', 'p-2', 'bg-base-200', 'rounded-md');
+        playerDiv.id = `selected-player-${stringId}`;
+        // IMPORTANT: The hidden input for dynamically added players is INSIDE the visual div.
+        playerDiv.innerHTML = `
+            <div class="flex items-center space-x-3">
+                <div class="avatar">
+                    <div class="mask mask-squircle w-8 h-8">
+                        <img src="${avatarUrl}" alt="${username}"/>
+                    </div>
+                </div>
+                <span>${username}</span>
+            </div>
+            <button type="button" class="btn btn-xs btn-ghost text-error remove-player-btn" onclick="removePlayer('${stringId}')">X</button>
+            <input type="hidden" name="players" value="${stringId}">
+        `;
+        listDiv.appendChild(playerDiv);
+        console.log('Appended visual div and hidden input for player:', stringId);
+        document.getElementById('player_search_results').innerHTML = ''; 
+        document.getElementById('player_search').value = username; 
+        updatePlayerRemoveButtonStates(); // Update button states
+    };
+
+    window.removePlayer = function(id) {
+        console.log(`Attempting to remove player with ID: ${id}`);
+        const stringId = id.toString(); // Ensure string for comparisons and selectors
+
+        let visualDivRemoved = false;
+        let hiddenInputRemoved = false;
+
+        // Attempt to remove the visual representation
+        const playerVisualDiv = document.getElementById(`selected-player-${stringId}`);
+        if (playerVisualDiv) {
+            // Check if this visual div also contains the hidden input (characteristic of dynamically added player)
+            const hiddenInputInsideVisual = playerVisualDiv.querySelector(`input[name="players"][value="${stringId}"]`);
+            if (hiddenInputInsideVisual) {
+                console.log(`Player ${stringId} appears to be dynamically added. Removing visual div which includes its hidden input.`);
+                playerVisualDiv.remove(); // Removes both visual and its contained hidden input
+                visualDivRemoved = true;
+                hiddenInputRemoved = true;
+                console.log(`SUCCESS: Removed visual div and contained hidden input for dynamically added player ${stringId}.`);
+            } else {
+                // Player was likely template-rendered, hidden input is separate. Just remove visual.
+                console.log(`Player ${stringId} visual div found. Removing visual div.`);
+                playerVisualDiv.remove();
+                visualDivRemoved = true;
+                console.log(`SUCCESS: Removed visual div for player ${stringId}.`);
+                
+                // Now, try to remove the separate hidden input for template-rendered players
+                const directHiddenInput = document.querySelector(`#selected_players_list > input[name="players"][value="${stringId}"]`);
+                if (directHiddenInput) {
+                    directHiddenInput.remove();
+                    hiddenInputRemoved = true;
+                    console.log(`SUCCESS: Removed direct hidden input for template-rendered player ${stringId}.`);
+                } else {
+                    console.warn(`WARN: Visual div for player ${stringId} removed, but its separate direct hidden input was not found.`);
+                }
+            }
+        } else {
+            console.warn(`WARN: Visual div for player ${stringId} (selected-player-${stringId}) not found.`);
+            // Still try to remove a direct hidden input, in case the visual was already gone (e.g. error state)
+            const directHiddenInput = document.querySelector(`#selected_players_list > input[name="players"][value="${stringId}"]`);
+            if (directHiddenInput) {
+                directHiddenInput.remove();
+                hiddenInputRemoved = true;
+                console.log(`SUCCESS: Visual div not found, but removed direct hidden input for player ${stringId}.`);
+            } else {
+                console.warn(`WARN: Neither visual div nor direct hidden input found for player ${stringId}. This player might have already been fully removed or was never properly added.`);
+            }
+        }
+
+        // Update the JS set if either visual or hidden input was acted upon
+        if (visualDivRemoved || hiddenInputRemoved) {
+            const wasInSet = window.selectedPlayers.delete(stringId);
+            if (wasInSet) {
+                console.log(`SUCCESS: Player ID ${stringId} removed from window.selectedPlayers set.`);
+            } else {
+                // This can be normal if the set was already cleared or player wasn't in it for some reason
+                console.info(`INFO: Player ID ${stringId} was not found in window.selectedPlayers set upon removal attempt (might have been removed already or ID mismatch).`);
+            }
+        } else {
+            console.error(`ERROR: No action taken for player ${stringId}. Visual and hidden input not found.`);
+        }
+    };
+</script>
+{% endblock %}

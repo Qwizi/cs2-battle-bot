@@ -1,0 +1,26 @@
+<c-ui.navbar bg="base-200">
+    <c-slot name="navbar_start">
+        <c-ui.button>CS2 Battle Bot</c-ui.button>
+    </c-slot>
+    <c-slot name="navbar_center">
+        1232
+    </c-slot>
+    <c-slot name="navbar_end">
+        {% if user.is_authenticated %}
+        <c-ui.dropdown position="bottom" align="bottom">
+            <c-slot name="title">
+                <c-ui.avatar rounded="full" src="{{ user.get_avatar }}" w="12"></c-ui.avatar>
+            </c-slot>
+            <c-ui.menu w="full">
+                <li>
+                    <a href="{% url 'account_logout' %}" hx-boost="true">Sign Out</a>
+                </li>
+            </c-ui.menu>
+        </c-ui.dropdown>
+        {% else %}
+        <c-ui.button type="primary" outline>
+            <a href="{% url 'account_login' %}" hx-boost="true">Sign In</a>
+        </c-ui.button>
+        {% endif %}
+    </c-slot>
+</c-ui.navbar>

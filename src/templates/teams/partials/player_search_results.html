@@ -1,0 +1,20 @@
+{% load i18n %}
+
+{% if players %}
+    {% for player in players %}
+    <div class="p-2 hover:bg-base-300 cursor-pointer flex items-center space-x-3 search-result-item"
+         data-player-id="{{ player.id }}"
+         data-player-username="{{ player.username|escapejs }}"
+         data-player-avatar="{{ player.get_avatar|escapejs }}"
+         data-search-context="{{ search_context }}">
+        <div class="avatar">
+            <div class="mask mask-squircle w-8 h-8">
+                <img src="{{ player.get_avatar|escapejs }}" alt="{{ player.username|escapejs }}"/>
+            </div>
+        </div>
+        <span>{{ player.username }}</span>
+    </div>
+    {% endfor %}
+{% else %}
+    <div class="p-2 text-base-content/70">{% trans "No players found." %}</div>
+{% endif %}

@@ -1,0 +1,28 @@
+<div class="px-4 py-2">
+    <ul class="space-y-1">
+        <li>
+            <a href="{% url 'index' %}" 
+               class="{% if request.resolver_match.url_name == 'index' %}btn-outline{% endif %}">
+                Home
+            </a>
+        </li>
+        <li>
+            <a href="{% url 'matches:list' %}" 
+               class="{% if request.resolver_match.app_name == 'matches' in request.resolver_match.url_name %}bg-gray-700{% endif %}">
+                Matches
+            </a>
+        </li>
+        <li>
+            <a href="{% url 'matches:config-list' %}" 
+               class="{% if request.resolver_match.app_name == 'matches' and 'config-' in request.resolver_match.url_name %}bg-gray-700{% endif %}">
+                Match Configs
+            </a>
+        </li>
+        <li>
+            <a href="{% url 'teams:team-list' %}"
+               class="{% if request.resolver_match.app_name == 'teams' %}bg-gray-700{% endif %}">
+                Teams
+            </a>
+        </li>
+    </ul>
+</div>

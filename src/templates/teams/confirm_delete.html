@@ -1,0 +1,24 @@
+{% extends "layout/base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Confirm Delete Team" %}{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="max-w-lg mx-auto bg-base-200 p-6 rounded-lg shadow">
+        <h1 class="text-2xl font-bold mb-4">{% trans "Delete Team" %}: {{ team.name }}</h1>
+        <p class="mb-6">{% blocktrans with team_name=team.name %}Are you sure you want to delete the team "<strong>{{ team_name }}</strong>"? This action cannot be undone.{% endblocktrans %}</p>
+        
+        <form method="post" 
+              hx-post="{% url 'teams:team-delete' team.pk %}" 
+              hx-target="body" 
+              hx-swap="innerHTML">
+            {% csrf_token %}
+            <div class="flex justify-end space-x-3">
+                <a href="{% url 'teams:team-detail' team.pk %}" class="btn btn-ghost">{% trans "Cancel" %}</a>
+                <button type="submit" class="btn btn-error">{% trans "Yes, Delete" %}</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

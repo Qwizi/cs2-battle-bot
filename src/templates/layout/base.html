@@ -1,24 +1,143 @@
 <!DOCTYPE html>
 {% load i18n static %}
-<html lang="en">
+{% load static %}
+{% load django_vite %}
+
+<html lang="en" data-theme="night">
+
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1"/>
-    <title>CS2 Battle Bot</title>
-    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.19/dist/full.min.css" rel="stylesheet" type="text/css"/>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>CS2 Battle Bot {% block title %}{% endblock %}</title>
+    {% vite_hmr_client %}
+    {% vite_asset 'static/js/app.js' %}
+    {% vite_asset 'static/css/app.css' %}
     {% block css %}{% endblock css %}
+
 </head>
-<body hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
-<c-navbar bg="base-200">
-    <c-slot name="navbar_start">
-        <c-button>CS2 Battle Bot</c-button>
-    </c-slot>
-</c-navbar>
-<div class="container mx-auto">
-    {% block body %}
-        {% block content %}{% endblock content %}
-    {% endblock body %}
-</div>
+
+<body hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}' hx-boost="true" class="bg-base-100" data-theme="black">
+    <div class="drawer lg:drawer-open ">
+        {# Drawer toggle for mobile view #}
+        <input id="main-drawer" type="checkbox" class="drawer-toggle">
+
+        <div class="drawer-content flex flex-col h-screen">
+            {% if user.is_authenticated %}
+            <div class="navbar bg-base-100 lg:hidden sticky top-0 z-20">
+                <div class="flex-none">
+                    <label for="main-drawer" aria-label="open sidebar" class="btn btn-square btn-ghost">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                            class="inline-block w-6 h-6 stroke-current">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M4 6h16M4 12h16M4 18h16"></path>
+                        </svg>
+                    </label>
+                </div>
+                <div class="flex-1 px-2 mx-2 font-bold text-lg"></div>
+            </div>
+            {%endif %}
+
+            <main class="flex-1 items-center justify-between mx-auto w-full max-w-5xl px-6 py-8">
+                {%block body %}
+                <div id="content"> {# Added this div to be the target for HTMX swaps #}
+                    {% block content %}
+                    <!-- Page-specific content goes here -->
+                    {% endblock %}
+                </div>
+                {%endblock %}
+            </main>
+        </div>
+        {% if user.is_authenticated %}
+        <div class="drawer-side z-30">
+            <label for="main-drawer" aria-label="close sidebar" class="drawer-overlay"></label>
+            <div
+                class="menu p-4 bg-base-100 border-r border-base-300 text-base-content h-full transition-all duration-300 ease-in-out w-[270px]">
+
+                <!-- Sidebar Header / Branding -->
+                <div class="mb-5 py-3">
+                    <div id="guild-selector" class="dropdown dropdown-bottom dropdown-center w-full border-base-300">
+                        {% if user_guilds %}
+                        <div tabindex="0" role="button" class="btn w-full btn-outline">
+                            {% if selected_guild %}
+                            {{ selected_guild.name }}
+                            {% else %}
+                            {{ _('Select server') }}
+                            {% endif %}
+                        </div>
+                        <ul tabindex="0"
+                            class="dropdown-content menu bg-base-200 rounded-box z-[100] w-full p-2 shadow-sm border-base-300">
+                            <form hx-post="{% url 'guilds:select_guild' %}" hx-target="#guild-selector" hx-swap="outerHTML">
+                                {% csrf_token %}
+                                {% for guild in user_guilds %}
+                                <li>
+                                    <button type="submit" name="guild_id" value="{{ guild.id }}"
+                                        class="w-full text-left {% if selected_guild and selected_guild.id == guild.id %}bg-primary text-primary-content{% endif %}">
+                                        {{ guild.name }}
+                                    </button>
+                                </li>
+                                {% endfor %}
+                            </form>
+                            <div class="divider"></div>
+                            <li><a href="{{ bot_invite_url }}" target="_blank">{{ _('Invite bot') }}</a></li>
+                        </ul>
+                        {% else %}
+                        <div tabindex="0" role="button" class="btn w-full btn-outline">{{ _('No servers') }}</div>
+                        <ul tabindex="0"
+                            class="dropdown-content menu bg-base-200 rounded-box z-[100] w-full p-2 shadow-sm border-base-300">
+                            <li><a href="{{ bot_invite_url }}" target="_blank">{{ _('Invite bot') }}</a></li>
+                        </ul>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Sidebar Menu Items -->
+                <ul class="space-y-2 flex-grow">
+                    <li class="mb-2">
+                        <a href="#" class="btn btn-primary btn-square show-when-collapsed hidden tooltip tooltip-right"
+                            data-tip="New Discussion">
+                            <svg class="inline w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none"
+                                viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"></path>
+                            </svg>
+                        </a>
+                    </li>
+
+                    {% block sidebar_items %}
+                    <div id="guild-selector">
+                        {% include 'layout/sidebar.html' %}
+                    </div>
+                    {% endblock sidebar_items %}
+                </ul>
+
+                <!-- Sidebar Toggle Button (visible on larger screens at the bottom) -->
+                <div class="mt-auto pt-4 border-t border-base-300 lg:block">
+                    <div class="dropdown dropdown-top dropdown-center w-full">
+
+                        <label tabindex="0" class="btn btn-ghost w-full flex justify-between">
+
+                            <div class="avatar">
+                                <div class="size-8 rounded-full">
+                                    <img src="{{request.user.get_avatar}}" />
+                                </div>
+                            </div>
+                            <span class="ml-3 hide-when-collapsed">{{ request.user.username }}</span>
+                        </label>
+
+                        <ul tabindex="0"
+                            class="dropdown-content menu bg-base-200 rounded-box z-[100] w-full p-2 shadow-sm border-base-300 mb-2">
+                            <li>
+                                <a href="{% url 'socialaccount_connections' %}">{{ _('Third-Party Accounts') }}</a>
+                            </li>
+                            <li><a href="{% url 'account_logout' %}">{{ _('Sign out') }}</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+        </div>
+
+        {% block scripts %}{% endblock scripts %}
 </body>
+
 </html>

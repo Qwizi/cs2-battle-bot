@@ -1,27 +1,39 @@
 {% extends "layout/base.html" %}
 {% load i18n %}
 {% block body %}
-    <div class="flex flex-col lg:flex-row justify-center mt-10 mb-10 w-full" hx-boost="false">
-        <div class="flex flex-col lg:flex-row gap-4 w-full">
+<div class="flex flex-col lg:flex-row justify-center mt-10 mb-10 w-full">
+    <div class="w-full"> {# Main container for tabs and content area #}
+        <div role="tablist" class="tabs tabs-bordered">
+            {# Tab 1: Third-Party Accounts #}
+            <a role="tab" href="{% url 'socialaccount_connections' %}"
+                class="tab {% if request.resolver_match.url_name == 'socialaccount_connections' %}tab-active{% endif %}">
+                {% trans "Third-Party Accounts" %}
+            </a>
 
-            <div class="w-full lg:w-1/4">
-                <ul class="menu bg-base-200 rounded-box w-full">
-                    <li>
-                        <h2 class="menu-title">Panel użytkownika</h2>
-                        <ul>
-                            <li ><a href="{% url 'socialaccount_connections' %}"  >{% trans "Third-Party Accounts" %}</a>
-                            </li>
-                        </ul>
-                    </li>
-                </ul>
-            </div>
-            <div class="w-full lg:w-3/4">
-                <div class="card bg-base-200 shadow-xl">
-                    <div class="card-body">
-                        {% block content %}{% endblock %}
-                    </div>
-                </div>
-            </div>
+            <a role="tab" href="{% url 'account_logout' %}"
+                class="tab {% if request.resolver_match.url_name == 'account_logout' %}tab-active{% endif %}">
+                {% trans "Sign Out" %}
+            </a>
+
+
+
+            {# Add more tabs here as needed, for example:
+            <a role="tab" href="{% url 'account_change_password' %}"
+                class="tab {% if request.resolver_match.url_name == 'account_change_password' %}tab-active{% endif %}">
+                {% trans "Change Password" %}
+            </a>
+            #}
+
+            {# Optional: an empty, growing tab to make the bottom border extend if tabs don't fill width #}
+            {# <a role="tab" class="tab grow shrink-0 basis-auto"></a> #}
+        </div>
+
+        {# Content area for the active tab #}
+        {# This div provides the bottom and side borders for the content, completing the "bordered" look #}
+        <div class="bg-base-100 border-base-300 border rounded-box p-6 w-full ">
+
+            {% block content %}{% endblock %}
         </div>
     </div>
+</div>
 {% endblock %}

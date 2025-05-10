@@ -1,0 +1,23 @@
+{% extends "layout/base.html" %}
+{% load i18n %}
+{% load crispy_forms_tags %}
+
+{% block title %}{% trans "Teams" %}{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8" id="teams-list-container">
+    <div class="flex justify-between items-center mb-6">
+        <h1 class="text-3xl font-bold">{% trans "Teams" %}</h1>
+        <a href="{% url 'teams:team-create' %}" class="btn btn-primary">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 mr-2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+            </svg>
+            {% trans "Create New Team" %}
+        </a>
+    </div>
+
+    <div id="teams-list">
+        {% include 'teams/partials/list_partial.html' with teams=teams page_obj=page_obj is_paginated=is_paginated %}
+    </div>
+</div>
+{% endblock %}

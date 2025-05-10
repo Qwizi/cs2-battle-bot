@@ -1,0 +1,80 @@
+{% extends "layout/base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Match Details" %}: {{ match.name|default:match.pk }}{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="max-w-4xl mx-auto bg-base-200 p-6 rounded-lg shadow">
+        <div class="flex justify-between items-start mb-6">
+            <div>
+                <h1 class="text-3xl font-bold">{% trans "Match" %} #{{ match.pk }}</h1>
+                <p class="text-sm text-base-content/70">{{ match.start_time|date:"l, F j, Y, P" }}</p>
+            </div>
+            <div class="flex space-x-2">
+                <a hx-get="{% url 'matches:match-update' match.pk %}"
+                   hx-target="body"
+                   hx-swap="innerHTML"
+                   hx-push-url="true"
+                   class="btn btn-outline btn-primary">{% trans "Edit" %}</a>
+                <a hx-get="{% url 'matches:match-delete' match.pk %}"
+                   hx-target="body"
+                   hx-swap="innerHTML"
+                   hx-push-url="true"
+                   class="btn btn-outline btn-error">{% trans "Delete" %}</a>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+            <div>
+                <h2 class="text-xl font-semibold mb-2">{% trans "Team 1" %}</h2>
+                <p>{{ match.team1.name|default:"N/A" }}</p>
+            </div>
+            <div>
+                <h2 class="text-xl font-semibold mb-2">{% trans "Team 2" %}</h2>
+                <p>{{ match.team2.name|default:"N/A" }}</p>
+            </div>
+        </div>
+
+        <div class="mb-6">
+            <h2 class="text-xl font-semibold mb-2">{% trans "Status" %}</h2>
+            <p>{{ match.get_status_display }}</p>
+        </div>
+
+        {% if match.config %}
+        <div class="mb-6">
+            <h2 class="text-xl font-semibold mb-2">{% trans "Match Configuration" %}</h2>
+            <p><a href="{% url 'matches:config-detail' match.config.pk %}" class="link link-hover">{{ match.config.name }}</a></p>
+        </div>
+        {% endif %}
+
+        {% if match.server %}
+        <div class="mb-6">
+            <h2 class="text-xl font-semibold mb-2">{% trans "Server" %}</h2>
+            <p>{{ match.server.hostname|default:match.server.ip_address }}</p>
+        </div>
+        {% endif %}
+
+        <div class="mb-6">
+            <h2 class="text-xl font-semibold mb-2">{% trans "Guild" %}</h2>
+            <p>{{ match.guild.name|default:"N/A" }}</p>
+        </div>
+
+        {% if match.max_rounds %}
+        <div class="mb-6">
+            <h2 class="text-xl font-semibold mb-2">{% trans "Max Rounds" %}</h2>
+            <p>{{ match.max_rounds }}</p>
+        </div>
+        {% endif %}
+
+        <div class="mt-8">
+            <a href="{% url 'matches:list' %}" 
+               hx-get="{% url 'matches:list' %}"
+               hx-target="body"
+               hx-swap="innerHTML"
+               hx-push-url="true"
+               class="btn btn-ghost">{% trans "Back to Matches" %}</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

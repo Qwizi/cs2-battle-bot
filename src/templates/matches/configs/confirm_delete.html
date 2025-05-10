@@ -1,0 +1,24 @@
+{% extends "layout/base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Confirm Delete Match Configuration" %}{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="max-w-lg mx-auto bg-base-200 p-6 rounded-lg shadow">
+        <h1 class="text-2xl font-bold mb-4">{% trans "Delete Match Configuration" %}: {{ config.name }}</h1>
+        <p class="mb-6">{% trans "Are you sure you want to delete this match configuration? This action cannot be undone." %}</p>
+        
+        <form method="post" 
+              hx-post="{% url 'matches:config-delete' config.pk %}" 
+              hx-target="body" {# Or a more specific target for content replacement #}
+              hx-swap="innerHTML">
+            {% csrf_token %}
+            <div class="flex justify-end space-x-3">
+                <a href="{% url 'matches:config-detail' config.pk %}" class="btn btn-ghost">{% trans "Cancel" %}</a>
+                <button type="submit" class="btn btn-error">{% trans "Yes, Delete" %}</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

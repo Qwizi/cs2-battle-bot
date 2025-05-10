@@ -12,6 +12,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
 from unfold.admin import ModelAdmin
 from unfold.forms import UserChangeForm, UserCreationForm, AdminPasswordChangeForm
+from guardian.admin import GuardedModelAdmin
 
 from accounts.models import Account
 
@@ -55,7 +56,7 @@ class OpenIDNonceAdmin(BaseOpenIDNonceAdmin, ModelAdmin):
 
 
 @admin.register(Account)
-class AccountAdmin(BaseUserAdmin, ModelAdmin):
+class AccountAdmin(BaseUserAdmin, ModelAdmin, GuardedModelAdmin):
     form = UserChangeForm
     add_form = UserCreationForm
     change_password_form = AdminPasswordChangeForm

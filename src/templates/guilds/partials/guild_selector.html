@@ -1,0 +1,31 @@
+{% load i18n %}
+<div id="guild-selector" class="dropdown dropdown-bottom dropdown-center w-full border-base-300">
+    {% if user_guilds %}
+    <div tabindex="0" role="button" class="btn w-full btn-outline">
+        {% if selected_guild %}
+            {{ selected_guild.name }}
+        {% else %}
+            {{ _('Select server') }}
+        {% endif %}
+    </div>
+    <ul tabindex="0" class="dropdown-content menu bg-base-200 rounded-box z-[100] w-full p-2 shadow-sm border-base-300">
+        <form hx-post="{% url 'guilds:select_guild' %}" hx-target="#guild-selector" hx-swap="outerHTML">
+            {% csrf_token %}
+            {% for guild in user_guilds %}
+            <li>
+                <button type="submit" name="guild_id" value="{{ guild.id }}" class="w-full text-left {% if selected_guild and selected_guild.id == guild.id %}bg-primary text-primary-content{% endif %}">
+                    {{ guild.name }}
+                </button>
+            </li>
+            {% endfor %}
+        </form>
+        <div class="divider"></div>
+        <li><a href="{{ bot_invite_url }}" target="_blank">{{ _('Invite bot') }}</a></li>
+    </ul>
+    {% else %}
+    <div tabindex="0" role="button" class="btn w-full btn-outline">{{ _('No servers') }}</div>
+    <ul tabindex="0" class="dropdown-content menu bg-base-200 rounded-box z-[100] w-full p-2 shadow-sm border-base-300">
+        <li><a href="{{ bot_invite_url }}" target="_blank">{{ _('Invite bot') }}</a></li>
+    </ul>
+    {% endif %}
+</div>

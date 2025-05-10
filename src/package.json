@@ -1,0 +1,21 @@
+{
+  "name": "cs2_discord_bot",
+  "version": "1.0.0",
+  "main": "vite.config.js",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "serve": "vite preview"
+  },
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "@tailwindcss/vite": "^4.1.6",
+    "htmx.org": "^2.0.4",
+    "tailwindcss": "^4.1.6"
+  },
+  "devDependencies": {
+    "daisyui": "^5.0.35"
+  }
+}

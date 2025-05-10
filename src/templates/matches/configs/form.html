@@ -1,0 +1,37 @@
+{% extends "layout/base.html" %}
+{% load i18n %}
+{% load crispy_forms_tags %}
+
+{% block title %}{{ form_title }}{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="flex justify-between items-center mb-6">
+        <h1 class="text-3xl font-bold">{{ form_title }}</h1>
+        <a href="{% url 'matches:config-list' %}" class="btn btn-ghost">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 mr-2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 15 3 9m0 0 6-6M3 9h12a6 6 0 0 1 0 12h-3" />
+            </svg>
+            {% trans "Back to List" %}
+        </a>
+    </div>
+
+    <form method="post" 
+          hx-post="{{ request.path }}" 
+          hx-target="body" {# Or a more specific target if you want to replace only the form or a section #}
+          hx-swap="innerHTML" {# Or other swap methods like "outerHTML" if replacing the form itself #}
+          class="card card-border border-base-300 p-6 rounded-lg shadow">
+        {% csrf_token %}
+        
+        {{ form|crispy }}
+
+        <div class="mt-8 flex justify-end space-x-3">
+            <a href="{% if object %}{% url 'matches:config-detail' object.pk %}{% else %}{% url 'matches:config-list' %}{% endif %}" class="btn btn-ghost">{% trans "Cancel" %}</a>
+            <button type="submit" class="btn btn-primary">
+                {% if object %}{% trans "Save Changes" %}{% else %}{% trans "Create Config" %}{% endif %}
+            </button>
+        </div>
+    </form>
+</div>
+
+{% endblock %}

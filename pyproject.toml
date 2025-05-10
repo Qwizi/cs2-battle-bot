@@ -17,6 +17,11 @@ crispy-daisyui = "^0.7.0"
 django-cotton = "^1.5.1"
 django-unfold = "^0.43.0"
 py-cord = {extras = ["speed"], version = "^2.6.1"}
+django-htmx = "^1.21.0"
+django-pydantic-field = "^0.3.11"
+django-easy-logging = "^0.70"
+django-guardian = "^3.0.0"
+django-vite = "^3.1.0"
 
 
 [build-system]
