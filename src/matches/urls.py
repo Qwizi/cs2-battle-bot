@@ -3,7 +3,8 @@ from .views import (
     MatchCreateView, MatchListView, MatchDetailView,
     MatchUpdateView, MatchDeleteView,
     MatchConfigListView, MatchConfigDetailView, MatchConfigCreateView,
-    MatchConfigUpdateView, MatchConfigDeleteView
+    MatchConfigUpdateView, MatchConfigDeleteView,
+    CvarListView, CvarDetailView, CvarCreateView, CvarUpdateView, CvarDeleteView
 )
 
 app_name = 'matches'
@@ -21,4 +22,11 @@ urlpatterns = [
     path('configs/<str:pk>/', MatchConfigDetailView.as_view(), name='config-detail'),
     path('configs/<str:pk>/edit/', MatchConfigUpdateView.as_view(), name='config-edit'),
     path('configs/<str:pk>/delete/', MatchConfigDeleteView.as_view(), name='config-delete'),
+
+    # CVar URLs
+    path('cvars/', CvarListView.as_view(), name='cvar-list'),
+    path('cvars/create/', CvarCreateView.as_view(), name='cvar-create'),
+    path('cvars/<str:pk>/', CvarDetailView.as_view(), name='cvar-detail'),
+    path('cvars/<str:pk>/edit/', CvarUpdateView.as_view(), name='cvar-update'),
+    path('cvars/<str:pk>/delete/', CvarDeleteView.as_view(), name='cvar-delete'),
 ]

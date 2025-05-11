@@ -1,3 +1,4 @@
+@source inline("select select-bordered");
 @import "tailwindcss";
 @plugin "daisyui";
 

@@ -1,0 +1,29 @@
+{% extends "layout/base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Confirm Delete Map" %}{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="max-w-lg mx-auto bg-base-200 p-6 rounded-lg shadow">
+        <h1 class="text-2xl font-bold mb-4">{% trans "Delete Map" %}: {{ map.name }}</h1>
+        <p class="mb-6">{% blocktrans with map_name=map.name %}Are you sure you want to delete the map "<strong>{{ map_name }}</strong>"? This action cannot be undone.{% endblocktrans %}</p>
+        
+        <form method="post" 
+              hx-post="{% url 'maps:map-delete' map.pk %}" 
+              hx-target="body" {# Target body to replace the whole page content on success #}
+              hx-swap="innerHTML">
+            {% csrf_token %}
+            <div class="flex justify-end space-x-3">
+                {# The cancel button should also navigate via HTMX to maintain SPA-like behavior #}
+                <a hx-get="{% url 'maps:map-detail' map.pk %}" 
+                   hx-target="body" 
+                   hx-swap="innerHTML"
+                   hx-push-url="true"
+                   class="btn btn-ghost">{% trans "Cancel" %}</a>
+                <button type="submit" class="btn btn-error">{% trans "Yes, Delete" %}</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

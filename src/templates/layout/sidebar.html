@@ -24,5 +24,11 @@
                 Teams
             </a>
         </li>
+        <li>
+            <a href="{% url 'maps:map-list' %}"
+               class="{% if request.resolver_match.app_name == 'maps' %}bg-gray-700{% endif %}">
+                Maps
+            </a>
+        </li>
     </ul>
 </div>

@@ -23,7 +23,34 @@
           class="card card-border border-base-300 p-6 rounded-lg shadow">
         {% csrf_token %}
         
-        {{ form|crispy }}
+        {{ form.non_field_errors }}
+        
+        {# Render other fields using crispy forms, excluding map_sides for now #}
+        {% for field in form %}
+            {% if field.name != 'map_sides' %}
+                <div class="mb-4">
+                    {{ field|as_crispy_field }}
+                </div>
+            {% endif %}
+        {% endfor %}
+
+        {# Custom map_sides selector #}
+        <div class="mb-4">
+            <label class="block text-sm font-medium text-gray-700 mb-1">{% trans "Map Sides" %}</label>
+            <div id="map_sides_selector_container" class="space-y-3">
+                {# JavaScript will populate this #}
+            </div>
+            <p class="text-xs text-gray-500 mt-1">Select the starting side for each map. The number of maps is determined by the 'Type' field.</p>
+            {{ form.map_sides }} {# This is the hidden input #}
+            {% if form.map_sides.errors %}
+                <div class="text-red-500 text-sm mt-1">
+                    {% for error in form.map_sides.errors %}
+                        <p>{{ error }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+
 
         <div class="mt-8 flex justify-end space-x-3">
             <a href="{% if object %}{% url 'matches:config-detail' object.pk %}{% else %}{% url 'matches:config-list' %}{% endif %}" class="btn btn-ghost">{% trans "Cancel" %}</a>
@@ -33,5 +60,128 @@
         </div>
     </form>
 </div>
+
+<script>
+function initializeMapSidesUI() {
+    const typeSelect = document.getElementsByName('type')[0];
+    const mapSidesContainer = document.getElementById('map_sides_selector_container');
+    const mapSidesInput = document.getElementById('id_map_sides');
+
+    if (!typeSelect) {
+        return;
+    }
+    if (!mapSidesContainer || !mapSidesInput) {
+        console.warn("MatchConfigForm: Map sides container or hidden input not found. UI cannot be initialized.");
+        return;
+    }
+
+    const sideChoices = [
+        { value: 'team1_ct', label: 'Team1 CT' },
+        { value: 'team2_ct', label: 'Team2 CT' },
+        { value: 'team1_t', label: 'Team1 T' },
+        { value: 'team2_t', label: 'Team2 T' },
+        { value: 'knife', label: 'Knife' }
+    ];
+
+    let currentSelections = [];
+
+    function getNumberOfMaps(matchType) {
+        if (matchType === 'bo1') return 1;
+        if (matchType === 'bo3') return 3;
+        if (matchType === 'bo5') return 5;
+        return 0;
+    }
+
+    function updateMapSidesInput() {
+        const validSelections = currentSelections.filter(s => s !== null && s !== undefined && s !== '');
+        mapSidesInput.value = JSON.stringify(validSelections);
+    }
+
+    function renderMapSideSelectors() {
+        const numMaps = getNumberOfMaps(typeSelect.value);
+        mapSidesContainer.innerHTML = ''; 
+
+        const oldSelections = [...currentSelections];
+        currentSelections = new Array(numMaps).fill(null);
+
+        for (let i = 0; i < Math.min(numMaps, oldSelections.length); i++) {
+            if (oldSelections[i]) {
+                currentSelections[i] = oldSelections[i];
+            }
+        }
+
+        for (let i = 0; i < numMaps; i++) {
+            const mapRow = document.createElement('div');
+            mapRow.className = 'p-3 border rounded-md bg-base-200/30';
+            
+            const label = document.createElement('p');
+            label.className = 'text-sm font-medium mb-2';
+            label.textContent = `Map ${i + 1} Side:`;
+            mapRow.appendChild(label);
+
+            const buttonGroup = document.createElement('div');
+            buttonGroup.className = 'flex flex-wrap gap-2';
+            mapRow.appendChild(buttonGroup);
+
+            sideChoices.forEach(choice => {
+                const button = document.createElement('button');
+                button.type = 'button';
+                button.textContent = choice.label;
+                button.dataset.value = choice.value;
+                button.className = 'btn btn-sm'; 
+
+                if (currentSelections[i] === choice.value) {
+                    button.classList.add('btn-active', 'btn-primary');
+                } else {
+                    button.classList.add('btn-outline');
+                }
+
+                button.addEventListener('click', function() {
+                    currentSelections[i] = this.dataset.value;
+                    buttonGroup.querySelectorAll('button').forEach(btn => {
+                        btn.classList.remove('btn-active', 'btn-primary');
+                        btn.classList.add('btn-outline');
+                    });
+                    this.classList.add('btn-active', 'btn-primary');
+                    this.classList.remove('btn-outline');
+                    updateMapSidesInput();
+                });
+                buttonGroup.appendChild(button);
+            });
+            mapSidesContainer.appendChild(mapRow);
+        }
+        updateMapSidesInput();
+    }
+
+    if (mapSidesInput.value && mapSidesInput.value !== 'null' && mapSidesInput.value !== '[]') {
+        try {
+            const existingValues = JSON.parse(mapSidesInput.value);
+            if (Array.isArray(existingValues)) {
+                currentSelections = existingValues;
+            }
+        } catch (e) {
+            console.error('MatchConfigForm: Error parsing existing map_sides value:', e, mapSidesInput.value);
+            currentSelections = [];
+        }
+    } else {
+        currentSelections = [];
+    }
+    
+    renderMapSideSelectors();
+    typeSelect.removeEventListener('change', renderMapSideSelectors); 
+    typeSelect.addEventListener('change', renderMapSideSelectors);
+}
+
+document.addEventListener('DOMContentLoaded', initializeMapSidesUI);
+
+document.addEventListener('htmx:afterSwap', function(event) {
+    const typeSelect = document.getElementsByName('type')[0];
+    if (typeSelect) {
+        console.log(event.detail.target);
+        initializeMapSidesUI();
+    }
+});
+
+</script>
 
 {% endblock %}

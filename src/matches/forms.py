@@ -1,7 +1,9 @@
 from django import forms
-from .models import Match, MatchConfig
+from crispy_forms.helper import FormHelper
+from crispy_forms.layout import Layout, Field
+from .models import Match, MatchConfig, Cvar
 from teams.models import Team
-from guilds.models import Guild
+from maps.models import MapPool
 
 class MatchCreateForm(forms.ModelForm):
     class Meta:
@@ -27,6 +29,7 @@ class MatchConfigForm(forms.ModelForm):
         model = MatchConfig
         fields = [
             'name',
+            'map_pool',
             'game_mode',
             'type',
             'map_sides',
@@ -34,25 +37,38 @@ class MatchConfigForm(forms.ModelForm):
             'shuffle_teams',
             'clinch_series',
             'cvars',
-            # 'guild' is removed from here, will be set in the view
         ]
         widgets = {
-            'map_sides': forms.Textarea(attrs={'rows': 3}),
+            'map_sides': forms.HiddenInput(),
             'cvars': forms.Textarea(attrs={'rows': 3}),
         }
 
     def __init__(self, *args, **kwargs):
+        # Pop guild from kwargs if present, to be used for filtering MapPool
+        guild = kwargs.pop('guild', None) 
         super().__init__(*args, **kwargs)
-        # Removed the loop that manually added CSS classes.
-        # crispy-daisyui will now handle the styling.
 
-        # Removed logic for handling the 'guild' field as it's no longer in the form
+        if guild:
+            self.fields['map_pool'].queryset = MapPool.objects.filter(guild=guild)
+        elif self.instance and self.instance.guild: # For update view, if guild is already set
+            self.fields['map_pool'].queryset = MapPool.objects.filter(guild=self.instance.guild)
+        else:
+            self.fields['map_pool'].queryset = MapPool.objects.none() # No guild, no map pools
 
-        # Example of how to set initial guild based on session or context (remains for reference)
-        # if self.request and self.request.session.get('selected_guild_id'):
-        #     try:
-        #         selected_guild = Guild.objects.get(id=self.request.session.get('selected_guild_id'))
-        #         # This would be for setting an initial value if the field were present
-        #         # self.fields['guild'].initial = selected_guild 
-        #     except Guild.DoesNotExist:
-        #         pass
+class CvarForm(forms.ModelForm):
+    class Meta:
+        model = Cvar
+        fields = ["name", "value_type", "description"]
+        widgets = {
+            "description": forms.Textarea(attrs={"rows": 3}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.helper = FormHelper()
+        self.helper.form_tag = False  # The template will have the <form> tag
+        self.helper.layout = Layout(
+            Field("name", wrapper_class="mb-4"),
+            Field("value_type", wrapper_class="mb-4"),
+            Field("description", wrapper_class="mb-4"),
+        )

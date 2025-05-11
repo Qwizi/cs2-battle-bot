@@ -64,10 +64,33 @@
                     <strong class="block text-sm font-medium text-base-content/70">{% trans "Guild" %}:</strong>
                     <p class="text-base-content">{{ config.guild.name|default:"Global" }}</p>
                 </div>
+                <div class="mb-2">
+                    <strong class="block text-sm font-medium text-base-content/70">{% trans "Map Pool" %}:</strong>
+                    <p class="text-base-content">
+                        {% if config.map_pool %}
+                            <a href="{% url 'maps:mappool-detail' config.map_pool.pk %}" class="link link-hover">
+                                {{ config.map_pool.name }}
+                            </a>
+                        {% else %}
+                            {% trans "Not set" %}
+                        {% endif %}
+                    </p>
+                </div>
                 
                 <div class="md:col-span-2 mb-2">
                     <strong class="block text-sm font-medium text-base-content/70">{% trans "Map Sides" %}:</strong>
-                    <pre class="bg-base-300 p-3 rounded text-sm whitespace-pre-wrap">{{ config.map_sides|default:"Not set" }}</pre>
+                    {% if config.map_sides %}
+                        <ul class="list-none p-0 m-0 space-y-2">
+                            {% for side in config.map_sides %}
+                                <li class="p-2 bg-base-200/50 rounded-md text-sm">
+                                    <span class="font-semibold">{% trans "Round" %} {{ forloop.counter }}:</span> 
+                                    {{ side.value }}
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p class="text-base-content/70 italic">{% trans "Not set" %}</p>
+                    {% endif %}
                 </div>
 
                 <div class="md:col-span-2 mb-2">

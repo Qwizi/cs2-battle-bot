@@ -27,4 +27,5 @@ urlpatterns = [
     path("guilds/", include("guilds.urls")),
     path("matches/", include("matches.urls")),
     path("teams/", include("teams.urls")),
+    path("maps/", include("maps.urls", namespace="maps")),
 ]

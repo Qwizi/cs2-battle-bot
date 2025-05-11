@@ -1,16 +1,12 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import redirect
 from django.views.generic import ListView, DetailView
-from django.views import View
-from django.http import HttpResponse
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.urls import reverse_lazy
 from django.db import models
 from django_htmx.http import HttpResponseLocation
-from matches.models import Match, MatchConfig
+from matches.models import Match, MatchConfig, Cvar
 from guilds.models import Guild
-from .forms import MatchCreateForm, MatchConfigForm
-from teams.models import Team
-from teams.forms import TeamForm
+from .forms import MatchCreateForm, MatchConfigForm, CvarForm
 from django.views.generic.edit import CreateView, UpdateView, DeleteView
 
 class MatchListView(LoginRequiredMixin, ListView):
@@ -187,6 +183,14 @@ class MatchConfigCreateView(LoginRequiredMixin, CreateView):
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
+        selected_guild_id = self.request.session.get('selected_guild_id')
+        if selected_guild_id:
+            try:
+                kwargs['guild'] = Guild.objects.get(id=selected_guild_id, members=self.request.user)
+            except Guild.DoesNotExist:
+                kwargs['guild'] = None
+        else:
+            kwargs['guild'] = None
         return kwargs
 
     def form_valid(self, form):
@@ -226,6 +230,20 @@ class MatchConfigUpdateView(LoginRequiredMixin, UpdateView):
                 return qs.filter(guild__isnull=True)
         return qs.filter(guild__isnull=True)
 
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        selected_guild_id = self.request.session.get('selected_guild_id')
+        if self.object.guild:
+            kwargs['guild'] = self.object.guild
+        elif selected_guild_id:
+            try:
+                kwargs['guild'] = Guild.objects.get(id=selected_guild_id, members=self.request.user)
+            except Guild.DoesNotExist:
+                kwargs['guild'] = None
+        else:
+            kwargs['guild'] = None
+        return kwargs
+
     def get_success_url(self):
         return reverse_lazy('matches:config-detail', kwargs={'pk': self.object.pk})
 
@@ -263,6 +281,123 @@ class MatchConfigDeleteView(LoginRequiredMixin, DeleteView):
         if self.request.htmx:
             return HttpResponseLocation(success_url)
         return redirect(success_url)
+
+    def post(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        success_url = self.get_success_url()
+        self.object.delete()
+        if request.htmx:
+            return HttpResponseLocation(success_url)
+        return redirect(success_url)
+
+class CvarListView(LoginRequiredMixin, ListView):
+    model = Cvar
+    template_name = 'matches/cvars/list.html'
+    context_object_name = 'cvars'
+    paginate_by = 10
+
+    def get_queryset(self):
+        selected_guild_id = self.request.session.get('selected_guild_id')
+        if selected_guild_id:
+            try:
+                guild = Guild.objects.get(id=selected_guild_id, members=self.request.user)
+                return Cvar.objects.filter(models.Q(guild=guild) | models.Q(guild__isnull=True))
+            except Guild.DoesNotExist:
+                return Cvar.objects.filter(guild__isnull=True)
+        return Cvar.objects.filter(guild__isnull=True)
+
+class CvarDetailView(LoginRequiredMixin, DetailView):
+    model = Cvar
+    template_name = 'matches/cvars/detail.html'
+    context_object_name = 'cvar'
+
+    def get_queryset(self):
+        selected_guild_id = self.request.session.get('selected_guild_id')
+        qs = super().get_queryset()
+        if selected_guild_id:
+            try:
+                guild = Guild.objects.get(id=selected_guild_id, members=self.request.user)
+                return qs.filter(models.Q(guild=guild) | models.Q(guild__isnull=True))
+            except Guild.DoesNotExist:
+                return qs.filter(guild__isnull=True)
+        return qs.filter(guild__isnull=True)
+
+class CvarCreateView(LoginRequiredMixin, CreateView):
+    model = Cvar
+    form_class = CvarForm
+    template_name = 'matches/cvars/form.html'
+
+    def get_success_url(self):
+        return reverse_lazy('matches:cvar-detail', kwargs={'pk': self.object.pk})
+
+    def form_valid(self, form):
+        selected_guild_id = self.request.session.get('selected_guild_id')
+        if selected_guild_id:
+            try:
+                guild = Guild.objects.get(id=selected_guild_id, members=self.request.user)
+                form.instance.guild = guild
+            except Guild.DoesNotExist:
+                form.instance.guild = None
+        else:
+            form.instance.guild = None
+
+        response = super().form_valid(form)
+        if self.request.htmx:
+            return HttpResponseLocation(self.get_success_url())
+        return response
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['form_title'] = "Create New CVar"
+        return context
+
+class CvarUpdateView(LoginRequiredMixin, UpdateView):
+    model = Cvar
+    form_class = CvarForm
+    template_name = 'matches/cvars/form.html'
+    context_object_name = 'cvar'
+
+    def get_queryset(self):
+        selected_guild_id = self.request.session.get('selected_guild_id')
+        qs = super().get_queryset()
+        if selected_guild_id:
+            try:
+                guild = Guild.objects.get(id=selected_guild_id, members=self.request.user)
+                return qs.filter(models.Q(guild=guild) | models.Q(guild__isnull=True))
+            except Guild.DoesNotExist:
+                return qs.filter(guild__isnull=True)
+        return qs.filter(guild__isnull=True)
+
+    def get_success_url(self):
+        return reverse_lazy('matches:cvar-detail', kwargs={'pk': self.object.pk})
+
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        if self.request.htmx:
+            return HttpResponseLocation(self.get_success_url())
+        return response
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['form_title'] = f"Edit CVar: {self.object.name}"
+        return context
+
+class CvarDeleteView(LoginRequiredMixin, DeleteView):
+    model = Cvar
+    template_name = 'matches/cvars/confirm_delete.html'
+    context_object_name = 'cvar'
+    success_url = reverse_lazy('matches:cvar-list')
+
+    def get_queryset(self):
+        selected_guild_id = self.request.session.get('selected_guild_id')
+        qs = super().get_queryset()
+        if selected_guild_id:
+            try:
+                guild = Guild.objects.get(id=selected_guild_id, members=self.request.user)
+                return qs.filter(models.Q(guild=guild) | models.Q(guild__isnull=True))
+            except Guild.DoesNotExist:
+                return qs.filter(guild__isnull=True)
+        return qs.filter(guild__isnull=True)
 
     def post(self, request, *args, **kwargs):
         self.object = self.get_object()
