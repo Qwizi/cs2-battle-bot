@@ -17,17 +17,17 @@
     </div>
 
     <form method="post" 
+          id="match_config_form"
           hx-post="{{ request.path }}" 
-          hx-target="body" {# Or a more specific target if you want to replace only the form or a section #}
-          hx-swap="innerHTML" {# Or other swap methods like "outerHTML" if replacing the form itself #}
+          hx-target="body"
+          hx-swap="innerHTML"
           class="card card-border border-base-300 p-6 rounded-lg shadow">
         {% csrf_token %}
         
         {{ form.non_field_errors }}
         
-        {# Render other fields using crispy forms, excluding map_sides for now #}
         {% for field in form %}
-            {% if field.name != 'map_sides' %}
+            {% if field.name != 'map_sides' and field.name != 'cvars_json' %}
                 <div class="mb-4">
                     {{ field|as_crispy_field }}
                 </div>
@@ -49,6 +49,30 @@
                     {% endfor %}
                 </div>
             {% endif %}
+        </div>
+
+        {# CVars Selection #}
+        <div class="mb-4">
+            <label class="label">
+                <span class="label-text">{% trans "CVars" %}</span>
+            </label>
+            <input type="text" 
+                   id="cvar_search_input"
+                   class="input input-bordered w-full mb-2" 
+                   placeholder="{% trans "Search for CVars to add..." %}"
+                   hx-get="{% url 'matches:cvar-search' %}"
+                   hx-trigger="keyup changed delay:500ms"
+                   hx-target="#cvar_search_results"
+                   hx-swap="innerHTML"
+                   name="cvar_query_param"> {# Ensure this name matches the one expected in CvarSearchView #}
+            <div id="cvar_search_results" class="relative">
+                {# Search results will be loaded here by HTMX #}
+            </div>
+            
+            <div id="selected_cvars_container" class="mt-4 space-y-3">
+                {# Selected CVars will be displayed here by JavaScript #}
+            </div>
+            {{ form.cvars_json }} {# Hidden input to store selected CVars and their values #}
         </div>
 
 
@@ -179,6 +203,171 @@ document.addEventListener('htmx:afterSwap', function(event) {
     if (typeSelect) {
         console.log(event.detail.target);
         initializeMapSidesUI();
+    }
+    // Initialize CVar UI after HTMX swap as well, if relevant elements are present
+    if (document.getElementById('cvar_search_input')) {
+        initializeCVarSelectionUI();
+    }
+});
+
+// CVar Selection UI
+function initializeCVarSelectionUI() {
+    const cvarSearchInput = document.getElementById('cvar_search_input');
+    const cvarSearchResultsContainer = document.getElementById('cvar_search_results');
+    const selectedCVarsContainer = document.getElementById('selected_cvars_container');
+    const cvarsJsonInput = document.getElementById('id_cvars_json');
+
+    if (!cvarSearchInput || !selectedCVarsContainer || !cvarsJsonInput) {
+        return;
+    }
+
+    if (cvarsJsonInput.value) {
+        try {
+            window.selectedCVars = JSON.parse(cvarsJsonInput.value);
+        } catch (e) {
+            console.error("Error parsing existing cvars_json:", e, cvarsJsonInput.value);
+            window.selectedCVars = {};
+        }
+    } else {
+        window.selectedCVars = {};
+    }
+    
+    renderSelectedCVars();
+
+    if (cvarSearchInput && !cvarSearchInput.dataset.blurListenerAttached) {
+        cvarSearchInput.addEventListener('blur', () => {
+            setTimeout(() => {
+                const activeElement = document.activeElement;
+                if (cvarSearchResultsContainer && activeElement !== cvarSearchInput && !cvarSearchResultsContainer.contains(activeElement)) {
+                     cvarSearchResultsContainer.innerHTML = '';
+                }
+            }, 200);
+        });
+        cvarSearchInput.dataset.blurListenerAttached = 'true';
+    }
+}
+
+function selectCvar(id, name, valueType) {
+    const cvarSearchInput = document.getElementById('cvar_search_input');
+    const cvarSearchResultsContainer = document.getElementById('cvar_search_results');
+
+    if (!window.selectedCVars[id]) {
+        window.selectedCVars[id] = { name: name, value: getDefaultCVarValue(valueType), value_type: valueType };
+        renderSelectedCVars();
+        updateCvarsJsonInput();
+    }
+    if (cvarSearchInput) cvarSearchInput.value = '';
+    if (cvarSearchResultsContainer) cvarSearchResultsContainer.innerHTML = '';
+}
+
+function getDefaultCVarValue(valueType) {
+    switch (valueType) {
+        case 'integer': return '0';
+        case 'float': return '0.0';
+        case 'boolean': return 'false';
+        case 'string':
+        default: return '';
+    }
+}
+
+function renderSelectedCVars() {
+    const selectedCVarsContainer = document.getElementById('selected_cvars_container');
+    if (!selectedCVarsContainer) return;
+
+    selectedCVarsContainer.innerHTML = '';
+    if (Object.keys(window.selectedCVars).length === 0) {
+        selectedCVarsContainer.innerHTML = '<p class="text-sm text-base-content/70">{% trans "No CVars added yet." %}</p>';
+        return;
+    }
+
+    for (const id in window.selectedCVars) {
+        const cvar = window.selectedCVars[id];
+        const cvarDiv = document.createElement('div');
+        cvarDiv.className = 'p-3 border rounded-md bg-base-200/50 flex items-center justify-between';
+        
+        const infoDiv = document.createElement('div');
+        infoDiv.className = 'flex-grow';
+        
+        const nameEl = document.createElement('strong');
+        nameEl.textContent = cvar.name;
+        nameEl.className = 'mr-2';
+        infoDiv.appendChild(nameEl);
+        
+        const typeEl = document.createElement('span');
+        typeEl.className = 'text-xs badge badge-outline mr-2';
+        typeEl.textContent = cvar.value_type;
+        infoDiv.appendChild(typeEl);
+
+        let inputEl;
+        if (cvar.value_type === 'boolean') {
+            inputEl = document.createElement('select');
+            inputEl.className = 'select select-bordered select-sm w-full max-w-xs';
+            const trueOpt = document.createElement('option');
+            trueOpt.value = 'true';
+            trueOpt.textContent = 'True';
+            const falseOpt = document.createElement('option');
+            falseOpt.value = 'false';
+            falseOpt.textContent = 'False';
+            inputEl.appendChild(trueOpt);
+            inputEl.appendChild(falseOpt);
+            inputEl.value = String(cvar.value);
+        } else {
+            inputEl = document.createElement('input');
+            inputEl.className = 'input input-bordered input-sm w-full max-w-xs';
+            inputEl.type = cvar.value_type === 'integer' || cvar.value_type === 'float' ? 'number' : 'text';
+            if (cvar.value_type === 'float') {
+                inputEl.step = 'any';
+            }
+            inputEl.value = cvar.value;
+        }
+        inputEl.placeholder = `{% trans "Enter value" %}`;
+        inputEl.addEventListener('change', (e) => {
+            window.selectedCVars[id].value = e.target.value;
+            updateCvarsJsonInput();
+        });
+        inputEl.addEventListener('keyup', (e) => { 
+            window.selectedCVars[id].value = e.target.value;
+            updateCvarsJsonInput();
+        });
+        infoDiv.appendChild(inputEl);
+        
+        cvarDiv.appendChild(infoDiv);
+
+        const removeBtn = document.createElement('button');
+        removeBtn.type = 'button';
+        removeBtn.className = 'btn btn-xs btn-ghost text-error ml-2';
+        removeBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>';
+        removeBtn.onclick = () => {
+            delete window.selectedCVars[id];
+            renderSelectedCVars();
+            updateCvarsJsonInput();
+        };
+        cvarDiv.appendChild(removeBtn);
+        selectedCVarsContainer.appendChild(cvarDiv);
+    }
+}
+
+function updateCvarsJsonInput() {
+    const cvarsJsonInput = document.getElementById('id_cvars_json');
+    if (!cvarsJsonInput) return;
+    cvarsJsonInput.value = JSON.stringify(window.selectedCVars);
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    if (typeof window.selectedCVars === 'undefined') {
+        window.selectedCVars = {};
+    }
+    initializeMapSidesUI();
+    initializeCVarSelectionUI();
+});
+
+document.addEventListener('htmx:afterSwap', function(event) {
+    const typeSelect = document.getElementsByName('type')[0];
+    if (typeSelect) {
+        initializeMapSidesUI();
+    }
+    if (document.getElementById('cvar_search_input')) {
+        initializeCVarSelectionUI();
     }
 });
 

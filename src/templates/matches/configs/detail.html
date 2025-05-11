@@ -95,7 +95,21 @@
 
                 <div class="md:col-span-2 mb-2">
                     <strong class="block text-sm font-medium text-base-content/70">{% trans "CVars" %}:</strong>
-                    <pre class="bg-base-300 p-3 rounded text-sm whitespace-pre-wrap">{{ config.cvars|default:"Not set" }}</pre>
+                    {% if config.matchconfigcvar_set.all %}
+                        <ul class="list-none p-0 m-0 space-y-2 mt-1">
+                            {% for mcc in config.matchconfigcvar_set.all %}
+                                <li class="p-2 bg-base-200/50 rounded-md text-sm flex justify-between items-center">
+                                    <span>
+                                        <strong class="font-semibold">{{ mcc.cvar.name }}</strong>
+                                        <span class="text-xs badge badge-outline ml-1">{{ mcc.cvar.get_value_type_display }}</span>
+                                    </span>
+                                    <span class="font-mono bg-base-300 px-2 py-1 rounded text-xs">{{ mcc.value }}</span>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p class="text-base-content/70 italic mt-1">{% trans "No CVars configured." %}</p>
+                    {% endif %}
                 </div>
             </div>
         </div>

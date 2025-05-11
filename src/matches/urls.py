@@ -4,7 +4,8 @@ from .views import (
     MatchUpdateView, MatchDeleteView,
     MatchConfigListView, MatchConfigDetailView, MatchConfigCreateView,
     MatchConfigUpdateView, MatchConfigDeleteView,
-    CvarListView, CvarDetailView, CvarCreateView, CvarUpdateView, CvarDeleteView
+    CvarListView, CvarDetailView, CvarCreateView, CvarUpdateView, CvarDeleteView,
+    CvarSearchView
 )
 
 app_name = 'matches'
@@ -26,7 +27,9 @@ urlpatterns = [
     # CVar URLs
     path('cvars/', CvarListView.as_view(), name='cvar-list'),
     path('cvars/create/', CvarCreateView.as_view(), name='cvar-create'),
+    path('cvars/search/', CvarSearchView.as_view(), name='cvar-search'),
     path('cvars/<str:pk>/', CvarDetailView.as_view(), name='cvar-detail'),
     path('cvars/<str:pk>/edit/', CvarUpdateView.as_view(), name='cvar-update'),
     path('cvars/<str:pk>/delete/', CvarDeleteView.as_view(), name='cvar-delete'),
+    
 ]

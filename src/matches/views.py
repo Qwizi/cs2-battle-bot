@@ -8,6 +8,7 @@ from matches.models import Match, MatchConfig, Cvar
 from guilds.models import Guild
 from .forms import MatchCreateForm, MatchConfigForm, CvarForm
 from django.views.generic.edit import CreateView, UpdateView, DeleteView
+from django.http import JsonResponse
 
 class MatchListView(LoginRequiredMixin, ListView):
     model = Match
@@ -286,7 +287,7 @@ class MatchConfigDeleteView(LoginRequiredMixin, DeleteView):
         self.object = self.get_object()
         success_url = self.get_success_url()
         self.object.delete()
-        if request.htmx:
+        if self.request.htmx:
             return HttpResponseLocation(success_url)
         return redirect(success_url)
 
@@ -406,3 +407,38 @@ class CvarDeleteView(LoginRequiredMixin, DeleteView):
         if request.htmx:
             return HttpResponseLocation(success_url)
         return redirect(success_url)
+
+class CvarSearchView(LoginRequiredMixin, ListView):
+    model = Cvar
+    template_name = 'matches/cvars/partials/search_results.html'
+    context_object_name = 'cvars'
+
+    def get_queryset(self):
+        query = self.request.GET.get('cvar_query_param')
+        selected_guild_id = self.request.session.get('selected_guild_id')
+        
+        qs = Cvar.objects.all()
+        if selected_guild_id:
+            try:
+                guild = Guild.objects.get(id=selected_guild_id, members=self.request.user)
+                qs = qs.filter(models.Q(guild=guild) | models.Q(guild__isnull=True))
+            except Guild.DoesNotExist:
+                qs = qs.filter(guild__isnull=True) # Show only global if guild not found (should not happen)
+        else:
+            qs = qs.filter(guild__isnull=True) # Show only global if no guild selected
+
+        if query:
+            qs = qs.filter(name__icontains=query)
+        else:
+            qs = qs.none() # Do not return any cvars if no query
+        
+        return qs.order_by('name')[:10] # Limit results
+
+    def render_to_response(self, context, **response_kwargs):
+        # For HTMX requests, we only render the partial
+        if self.request.htmx:
+            return super().render_to_response(context, **response_kwargs)
+        # For non-HTMX requests (e.g. direct access, though not typical for this view),
+        # we could return a JsonResponse or redirect, but here we'll just return empty for simplicity
+        # as this view is primarily for HTMX.
+        return JsonResponse({'error': 'Direct access not intended'}, status=400)

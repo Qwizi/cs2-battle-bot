@@ -70,6 +70,11 @@ class Match(DateMixin):
             num_maps = 3
         elif self.config.type == Match.Type.BO5:
             num_maps = 5
+        
+        # Prepare cvars for JSON config
+        config_cvars = self.config.matchconfigcvar_set.all()
+        cvars_dict = {cc.cvar.name: cc.value for cc in config_cvars}
+
         return MatchConfigJSON(
             match_id=self.id,
             team1=self.team1.get_config(),
@@ -80,7 +85,7 @@ class Match(DateMixin):
             spectators=MatchConfigSpecJSON(players={}),
             clinch_series=self.config.clinch_series,
             players_per_team=self.config.players_per_team,
-            cvars=self.config.cvars,
+            cvars=cvars_dict, # Use the populated cvars_dict
         )
 
 

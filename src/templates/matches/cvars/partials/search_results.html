@@ -1,0 +1,28 @@
+<!-- templates/matches/cvars/partials/search_results.html -->
+{% load i18n %}
+
+{% if cvars %}
+    <ul class="menu bg-base-200 rounded-box mt-1 max-h-60 overflow-y-auto z-50 shadow-lg">
+        {% for cvar in cvars %}
+            <li>
+                <a href="#" 
+                   class="cvar-search-result-item text-sm"
+                   data-cvar-id="{{ cvar.pk }}"
+                   data-cvar-name="{{ cvar.name }}"
+                   data-cvar-value-type="{{ cvar.value_type }}"
+                   onclick="selectCvar('{{ cvar.pk }}', '{{ cvar.name }}', '{{ cvar.value_type }}'); return false;">
+                    {{ cvar.name }} ({{ cvar.get_value_type_display }})
+                    {% if cvar.guild %}
+                        <span class="text-xs text-base-content/70"> ({{ cvar.guild.name }})</span>
+                    {% else %}
+                        <span class="text-xs text-base-content/70"> ({% trans "Global" %})</span>
+                    {% endif %}
+                </a>
+            </li>
+        {% endfor %}
+    </ul>
+{% else %}
+    {% if request.GET.cvar_query_param %}
+    <div class="p-2 text-sm text-base-content/70">{% trans "No CVars found matching your query." %}</div>
+    {% endif %}
+{% endif %}
