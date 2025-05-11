@@ -49,7 +49,7 @@
                     {% if mappool.maps.all %}
                         <ul class="list-disc list-inside bg-base-300 p-3 rounded text-sm">
                             {% for map_item in mappool.maps.all %}
-                                <li>{{ map_item.name }} ({{ map_item.get_game_mode_display }})</li>
+                                <li>{{ map_item.name }} ({{ map_item.tag }})</li>
                             {% endfor %}
                         </ul>
                     {% else %}

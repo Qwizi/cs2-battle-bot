@@ -149,7 +149,7 @@ class MatchConfig(DateMixin):
         return self.name
 
 
-class Cvar(models.Model):
+class Cvar(DateMixin):
     class ValueType(models.TextChoices):
         STRING = "string"
         INTEGER = "integer"
@@ -175,7 +175,7 @@ class Cvar(models.Model):
         return self.name
 
 
-class MatchConfigCvar(models.Model):
+class MatchConfigCvar(DateMixin):
     match_config = models.ForeignKey(MatchConfig, on_delete=models.CASCADE)
     cvar = models.ForeignKey(Cvar, on_delete=models.CASCADE)
     value = models.CharField(max_length=255)

@@ -4,7 +4,9 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import ListView, DetailView
 from django.views.generic.edit import CreateView, UpdateView, DeleteView
 from django_htmx.http import HttpResponseLocation
-
+from django.db import models
+from django.db.models import Q
+from django.views import View
 from .models import Map, MapPool
 from .forms import MapForm, MapPoolForm
 from guilds.models import Guild
@@ -21,7 +23,7 @@ class MapListView(LoginRequiredMixin, ListView):
             try:
                 # Ensure the user is a member of the guild they are trying to access
                 selected_guild = Guild.objects.get(id=selected_guild_id, members=self.request.user)
-                return Map.objects.filter(guild=selected_guild)
+                return Map.objects.filter(models.Q(guild=selected_guild) | models.Q(guild__isnull=True))
             except Guild.DoesNotExist:
                 return Map.objects.none() # Or handle as an error
         return Map.objects.none() # No guild selected, show no maps or global maps if applicable
@@ -37,7 +39,7 @@ class MapDetailView(LoginRequiredMixin, DetailView):
         if selected_guild_id:
             try:
                 selected_guild = Guild.objects.get(id=selected_guild_id, members=self.request.user)
-                return Map.objects.filter(guild=selected_guild)
+                return Map.objects.filter(models.Q(guild=selected_guild) | models.Q(guild__isnull=True))
             except Guild.DoesNotExist:
                 return Map.objects.none()
         return Map.objects.none()
@@ -143,6 +145,35 @@ class MapDeleteView(LoginRequiredMixin, DeleteView):
             return HttpResponseLocation(success_url) 
         return redirect(success_url)
 
+class MapSearchView(LoginRequiredMixin, View):
+    template_name = 'maps/partials/map_search_results.html'
+
+    def get(self, request, *args, **kwargs):
+        search_term = request.GET.get('map_search', '').strip()
+        selected_guild_id = request.session.get('selected_guild_id')
+        
+        maps_queryset = Map.objects.none() # Default to no results
+
+        if not search_term: # If search term is empty, return no results
+            return render(request, self.template_name, {'maps': maps_queryset})
+
+        base_queryset = Map.objects.none()
+        if selected_guild_id:
+            try:
+                guild = Guild.objects.get(id=selected_guild_id, members=request.user)
+                base_queryset = Map.objects.filter(Q(guild=guild) | Q(guild__isnull=True)).distinct()
+            except Guild.DoesNotExist:
+                base_queryset = Map.objects.filter(guild__isnull=True).distinct()
+        else:
+            base_queryset = Map.objects.filter(guild__isnull=True).distinct()
+
+        # Ensure search_term is not empty before filtering with it (already handled by the check above)
+        maps_queryset = base_queryset.filter(
+            Q(name__icontains=search_term) | Q(tag__icontains=search_term)
+        ).distinct()
+            
+        return render(request, self.template_name, {'maps': maps_queryset})
+
 # MapPool Views
 
 class MapPoolListView(LoginRequiredMixin, ListView):
@@ -156,7 +187,7 @@ class MapPoolListView(LoginRequiredMixin, ListView):
         if selected_guild_id:
             try:
                 selected_guild = Guild.objects.get(id=selected_guild_id, members=self.request.user)
-                return MapPool.objects.filter(guild=selected_guild)
+                return MapPool.objects.filter(models.Q(guild=selected_guild) | models.Q(guild__isnull=True))
             except Guild.DoesNotExist:
                 return MapPool.objects.none()
         return MapPool.objects.none()
@@ -171,7 +202,7 @@ class MapPoolDetailView(LoginRequiredMixin, DetailView):
         if selected_guild_id:
             try:
                 selected_guild = Guild.objects.get(id=selected_guild_id, members=self.request.user)
-                return MapPool.objects.filter(guild=selected_guild)
+                return MapPool.objects.filter(models.Q(guild=selected_guild) | models.Q(guild__isnull=True))
             except Guild.DoesNotExist:
                 return MapPool.objects.none()
         return MapPool.objects.none()
@@ -193,8 +224,10 @@ class MapPoolCreateView(LoginRequiredMixin, CreateView):
             kwargs['guild'] = None
         return kwargs
 
-    def get_success_url(self):
-        return reverse_lazy('maps:mappool-detail', kwargs={'pk': self.object.pk})
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['form_title'] = "Create New Map Pool"
+        return context
 
     def form_valid(self, form):
         selected_guild_id = self.request.session.get('selected_guild_id')
@@ -219,10 +252,8 @@ class MapPoolCreateView(LoginRequiredMixin, CreateView):
             response.status_code = 422
         return response
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['form_title'] = "Create New Map Pool"
-        return context
+    def get_success_url(self): # Added this method
+        return reverse_lazy('maps:mappool-detail', kwargs={'pk': self.object.pk})
 
 class MapPoolUpdateView(LoginRequiredMixin, UpdateView):
     model = MapPool
@@ -241,6 +272,11 @@ class MapPoolUpdateView(LoginRequiredMixin, UpdateView):
         else:
             kwargs['guild'] = None
         return kwargs
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['form_title'] = f"Edit Map Pool: {self.object.name}"
+        return context
 
     def get_queryset(self):
         selected_guild_id = self.request.session.get('selected_guild_id')
@@ -266,11 +302,6 @@ class MapPoolUpdateView(LoginRequiredMixin, UpdateView):
         if self.request.htmx:
             response.status_code = 422
         return response
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['form_title'] = f"Edit Map Pool: {self.object.name}"
-        return context
 
 class MapPoolDeleteView(LoginRequiredMixin, DeleteView):
     model = MapPool

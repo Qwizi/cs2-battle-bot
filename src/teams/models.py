@@ -14,7 +14,7 @@ class Team(DateMixin):
     name = models.CharField(max_length=100)
     players = models.ManyToManyField('accounts.Account', related_name='teams')
     capitan = models.ForeignKey('accounts.Account', on_delete=models.CASCADE, related_name='capitan_team', default=None)
-    guild = models.ForeignKey('guilds.Guild', on_delete=models.CASCADE, related_name='teams', default=None)
+    guild = models.ForeignKey('guilds.Guild', on_delete=models.CASCADE, related_name='teams', default=None, null=True, blank=True)
     is_temp = models.BooleanField(default=True)
 
     def __str__(self):

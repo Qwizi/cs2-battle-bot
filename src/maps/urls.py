@@ -5,6 +5,7 @@ from .views import (
     MapCreateView,
     MapUpdateView,
     MapDeleteView,
+    MapSearchView,
     MapPoolListView,
     MapPoolDetailView,
     MapPoolCreateView,
@@ -16,6 +17,7 @@ app_name = 'maps'
 
 urlpatterns = [
     path('', MapListView.as_view(), name='map-list'),
+    path('search/', MapSearchView.as_view(), name='map-search'),
     path('pools/', MapPoolListView.as_view(), name='mappool-list'),
     path('pools/create/', MapPoolCreateView.as_view(), name='mappool-create'),
     path('pools/<str:pk>/', MapPoolDetailView.as_view(), name='mappool-detail'),

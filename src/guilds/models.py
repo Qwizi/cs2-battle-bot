@@ -1,6 +1,7 @@
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.db import models
+from django.dispatch import receiver
 from loguru import logger
 from prefix_id import PrefixIDField
 from asgiref.sync import sync_to_async
@@ -14,7 +15,7 @@ class Guild(DateMixin):
     id = PrefixIDField(prefix="guild", primary_key=True)
     gid = models.CharField(max_length=100)
     name = models.CharField(max_length=100)
-    members = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name='guilds', blank=True, null=True)
+    members = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name='guilds', blank=True)
     owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='owned_guilds', blank=True, null=True)
     lobby_channel = models.CharField(max_length=100, blank=True, null=True)
     team1_channel = models.CharField(max_length=100, blank=True, null=True)
@@ -72,4 +73,3 @@ class Guild(DateMixin):
         else:
             logger.info(f"No owner found for guild {self.name}")
         logger.info(f"Finished syncing owner for guild {self.name}")
-

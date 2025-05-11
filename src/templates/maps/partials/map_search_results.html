@@ -1,0 +1,28 @@
+{% load i18n %}
+
+{% if maps %}
+    {% for map_item in maps %}
+    <div class="p-2 hover:bg-base-300 cursor-pointer flex items-center space-x-3 map-search-item"
+         data-map-id="{{ map_item.pk }}"
+         data-map-name="{{ map_item.name|escapejs }}">
+        {# Placeholder for a potential map icon - similar to player avatar div structure #}
+        {# <div class="avatar placeholder">
+            <div class="bg-neutral text-neutral-content mask mask-squircle w-8 h-8">
+                <span class="text-xs">MAP</span> <!- Or an actual icon ->
+            </div>
+        </div> #}
+        <div>
+            <span class="font-semibold">{{ map_item.name }}</span>
+            <p class="text-xs text-base-content/70">{% if map_item.guild %}{{ map_item.guild.name }}{% else %}{% trans "Global" %}{% endif %}</p>
+        </div>
+    </div>
+    {% endfor %}
+{% else %}
+    <div class="p-2 text-base-content/70">
+        {% if request.GET.map_search %}
+            {% trans "No maps found matching your search." %}
+        {% else %}
+            {% trans "Start typing to search for maps." %}
+        {% endif %}
+    </div>
+{% endif %}

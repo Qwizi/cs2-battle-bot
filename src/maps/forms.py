@@ -1,4 +1,5 @@
 from django import forms
+from django.db.models import Q  # Corrected import
 from .models import Map, MapPool
 
 class MapForm(forms.ModelForm):
@@ -10,17 +11,24 @@ class MapPoolForm(forms.ModelForm):
     class Meta:
         model = MapPool
         fields = ["name", "maps"]
+        widgets = {
+            'maps': forms.CheckboxSelectMultiple,  # Explicitly use CheckboxSelectMultiple
+        }
 
     def __init__(self, *args, **kwargs):
-        # We need to get the guild from the view to filter the maps queryset
-        # The view will need to pass `request` to the form kwargs
-        # And the view will need to add `guild` to the form instance before saving
-        # or ensure the guild is passed to the form for filtering.
-        # For now, let's assume the view handles guild filtering for the queryset.
         guild = kwargs.pop('guild', None)
         super().__init__(*args, **kwargs)
+        
+        current_maps_queryset = Map.objects.none()
         if guild:
-            self.fields['maps'].queryset = Map.objects.filter(guild=guild)
+            current_maps_queryset = Map.objects.filter(
+                Q(guild=guild) | Q(guild__isnull=True)
+            ).distinct()
         else:
-            # If no guild, perhaps show no maps or all maps if that's desired (less likely for guild-specific pools)
-            self.fields['maps'].queryset = Map.objects.none()
+            # Default to global maps if no specific guild context
+            current_maps_queryset = Map.objects.filter(guild__isnull=True).distinct()
+
+        self.fields['maps'].queryset = current_maps_queryset
+        # Make maps field not required as selection is dynamic and can be empty initially
+        # The actual selection will be handled by JS updating the checkboxes
+        self.fields['maps'].required = False

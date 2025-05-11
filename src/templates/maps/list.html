@@ -96,7 +96,7 @@
     <div class="mt-8 flex justify-center">
         <div class="join">
             {% if page_obj.has_previous %}
-                <a hx-get="?page={{ page_obj.previous_page_number }}" hx-target="#maps-list-container" hx-swap="innerHTML" class="join-item btn">«</a>
+                <a hx-get="?page={{ page_obj.previous_page_number }}" hx-target="body" hx-swap="innerHTML" hx-push-url="true" class="join-item btn">«</a>
             {% else %}
                 <button class="join-item btn btn-disabled">«</button>
             {% endif %}
@@ -104,7 +104,7 @@
             <button class="join-item btn">{% trans "Page" %} {{ page_obj.number }} {% trans "of" %} {{ page_obj.paginator.num_pages }}</button>
             
             {% if page_obj.has_next %}
-                <a hx-get="?page={{ page_obj.next_page_number }}" hx-target="#maps-list-container" hx-swap="innerHTML" class="join-item btn">»</a>
+                <a hx-get="?page={{ page_obj.next_page_number }}" hx-target="body" hx-swap="innerHTML" hx-push-url="true"  class="join-item btn">»</a>
             {% else %}
                 <button class="join-item btn btn-disabled">»</button>
             {% endif %}

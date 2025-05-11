@@ -155,7 +155,7 @@ class MatchConfigListView(LoginRequiredMixin, ListView):
         if selected_guild_id:
             try:
                 guild = Guild.objects.get(id=selected_guild_id, members=self.request.user)
-                return MatchConfig.objects.filter(guild=guild)
+                return MatchConfig.objects.filter(models.Q(guild=guild) | models.Q(guild__isnull=True))
             except Guild.DoesNotExist:
                 return MatchConfig.objects.none()
         return MatchConfig.objects.filter(guild__isnull=True)
@@ -364,7 +364,7 @@ class CvarUpdateView(LoginRequiredMixin, UpdateView):
         if selected_guild_id:
             try:
                 guild = Guild.objects.get(id=selected_guild_id, members=self.request.user)
-                return qs.filter(models.Q(guild=guild) | models.Q(guild__isnull=True))
+                return qs.filter(guild=guild)
             except Guild.DoesNotExist:
                 return qs.filter(guild__isnull=True)
         return qs.filter(guild__isnull=True)
@@ -395,7 +395,7 @@ class CvarDeleteView(LoginRequiredMixin, DeleteView):
         if selected_guild_id:
             try:
                 guild = Guild.objects.get(id=selected_guild_id, members=self.request.user)
-                return qs.filter(models.Q(guild=guild) | models.Q(guild__isnull=True))
+                return qs.filter(guild=guild)
             except Guild.DoesNotExist:
                 return qs.filter(guild__isnull=True)
         return qs.filter(guild__isnull=True)

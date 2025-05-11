@@ -23,8 +23,46 @@
           class="card card-border border-base-300 p-6 rounded-lg shadow">
         {% csrf_token %}
         
-        {{ form|crispy }}
+        {{ form.name|as_crispy_field }}
+        
+        {# Container for the actual checkboxes - no longer hidden #}
+        
+        
+        {# Render other non-field errors and other fields if any (excluding name and maps) #}
+        {{ form.non_field_errors }}
+        {% for field in form %}
+            {% if field.name != 'name' and field.name != 'maps' %}
+                {{ field|as_crispy_field }}
+            {% endif %}
+        {% endfor %}
 
+        {# Map Search Input #}
+        <div class="mb-4">
+            <label for="map_search_input" class="block text-sm font-medium text-gray-700 mb-1">{% trans "Search Maps (by Name or Tag)" %}</label>
+            <input type="text" 
+                   name="map_search" 
+                   id="map_search_input"
+                   class="input input-bordered w-full"
+                   hx-get="{% url 'maps:map-search' %}" 
+                   hx-trigger="keyup changed delay:500ms" 
+                   hx-target="#map_search_results" 
+                   hx-swap="innerHTML"
+                   hx-include="[name='maps']" {# Include selected map IDs to highlight them #}
+                   placeholder="{% trans "Type to search maps..." %}">
+        </div>
+
+        {# Area to display map search results (will be populated by HTMX) #}
+        <div id="map_search_results" class="mt-1 border border-base-300 rounded max-h-48 overflow-y-auto">
+            {# Initially empty. HTMX will populate this only when user types in search_input #}
+            
+        </div>
+        <div class="mb-4" id="selected_maps_checkboxes_container">
+            <p class="block text-sm font-medium text-gray-700 mb-1">{% trans "Selected Maps" %}:</p>
+            <div id="selected_maps_checkboxes" class="p-2 border rounded-md max-h-60 overflow-y-auto bg-base-200/30">
+                 {{ form.maps|as_crispy_field }} 
+            </div>
+        </div>
+        
         <div class="mt-8 flex justify-end space-x-3">
             <a href="{% if object %}{% url 'maps:mappool-detail' object.pk %}{% else %}{% url 'maps:mappool-list' %}{% endif %}" class="btn btn-ghost">{% trans "Cancel" %}</a>
             <button type="submit" class="btn btn-primary">
@@ -33,5 +71,68 @@
         </div>
     </form>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // No initial load of all maps in search results.
+    // Handlers will be attached when results are loaded by HTMX.
+    updateSelectedVisualState(); // Update visual state for pre-selected maps in checkboxes
+});
+
+document.addEventListener('htmx:afterSwap', function(event) {
+    if (event.detail.target.id === 'map_search_results') {
+        attachMapSelectionHandlersToContainer(event.detail.target);
+        updateSelectedVisualState(); 
+        // Do not clear the input here if we want to allow further refinement of search
+    }
+});
+
+function attachMapSelectionHandlersToContainer(container) {
+    if (!container) return;
+    container.querySelectorAll('.map-search-item').forEach(item => {
+        item.removeEventListener('click', handleMapItemClick);
+        item.addEventListener('click', handleMapItemClick);
+    });
+}
+
+function handleMapItemClick(event) {
+    const mapItem = event.currentTarget;
+    const mapId = mapItem.dataset.mapId;
+    const checkbox = document.querySelector(`#selected_maps_checkboxes input[type='checkbox'][value='${mapId}']`);
+
+    if (checkbox) {
+        checkbox.checked = !checkbox.checked;
+        // Visual update for the item in search results is optional if search clears
+        // mapItem.classList.toggle('selected-map-item', checkbox.checked);
+        // mapItem.classList.toggle('bg-primary/20', checkbox.checked);
+        // mapItem.classList.toggle('border-primary', checkbox.checked);
+
+        // Clear the search input after selection
+        const searchInput = document.getElementById('map_search_input');
+        if (searchInput) {
+            searchInput.value = '';
+        }
+        // Optionally, clear the search results container as well
+        const searchResultsContainer = document.getElementById('map_search_results');
+        if (searchResultsContainer) {
+            searchResultsContainer.innerHTML = '<p class="text-base-content/70 p-2 text-center"></p>'; 
+        }
+
+    } else {
+        console.error(`Checkbox for map ID ${mapId} not found.`);
+    }
+}
+
+function updateSelectedVisualState() {
+    // This function might be less relevant if search results are cleared after click.
+    // However, it's useful for initial page load if editing an existing pool.
+    const checkboxes = document.querySelectorAll("#selected_maps_checkboxes input[type='checkbox']");
+    checkboxes.forEach(cb => {
+        // If you had a persistent list of selected items separate from search, you'd update it here.
+        // For now, the primary visual indicator is the checkbox list itself.
+    });
+}
+
+</script>
 
 {% endblock %}
